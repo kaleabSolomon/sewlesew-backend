@@ -1,0 +1,42 @@
+services:
+  sewlesew-api:
+    container_name: sewlesewAPI
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3333:3333'
+    environment:
+      - PORT=3333
+      - NODE_ENV=development
+    volumes:
+      - ./src:/usr/src/app/src
+    depends_on:
+      sewlesew-db:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - sewlesewNet
+  sewlesew-db:
+    container_name: sewlesewDB
+    image: postgres:16
+    restart: always
+    ports:
+      - '5434:5432'
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - sewlesewNet
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  pgdata:
+networks:
+  sewlesewNet:
