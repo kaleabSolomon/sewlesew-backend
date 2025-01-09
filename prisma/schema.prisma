@@ -60,8 +60,10 @@ model Campaign {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categories Category[] @relation("CampaignCategories")
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories    Category[]      @relation("CampaignCategories")
+  CampaignMedia CampaignMedia[]
+  CampaignDoc   CampaignDoc[]
 
   @@map("campaigns")
 }
@@ -73,6 +75,30 @@ model Category {
   campaigns Campaign[] @relation("CampaignCategories")
 
   @@map("categories")
+}
+
+model CampaignMedia {
+  id         String @id @default(uuid())
+  campaignId String
+  url        String
+
+  createdAt DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("campaignMedias")
+}
+
+model CampaignDoc {
+  id         String @id @default(uuid())
+  campaignId String
+  url        String
+
+  createdAt DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("campaignDocs")
 }
 
 enum CampaignStatus {
