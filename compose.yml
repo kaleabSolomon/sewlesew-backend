@@ -11,7 +11,7 @@ services:
       - PORT=3333
       - NODE_ENV=development
     volumes:
-      - ./src:/usr/src/app/src
+      - .:/usr/src/app
     depends_on:
       sewlesew-db:
         condition: service_healthy
