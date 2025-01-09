@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3333:3333'
+      - '5555:5555'
     environment:
       - PORT=3333
       - NODE_ENV=development
@@ -14,29 +15,28 @@ services:
     depends_on:
       sewlesew-db:
         condition: service_healthy
-    env_file:
-      - .env
     networks:
       - sewlesewNet
+
   sewlesew-db:
     container_name: sewlesewDB
-    image: postgres:16
+    image: mysql:8
     restart: always
     ports:
-      - '5434:5432'
+      - '3307:3306' # Expose MySQL's port 3306 to the host machine's 3307
+    volumes:
+      - mysql_data:/var/lib/mysql
     env_file:
       - .env
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     networks:
       - sewlesewNet
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      test: ['CMD-SHELL', 'mysqladmin ping -u sls_usr -p${MYSQL_PASSWORD}']
       interval: 5s
       timeout: 10s
       retries: 5
 
 volumes:
-  pgdata:
+  mysql_data:
 networks:
   sewlesewNet:

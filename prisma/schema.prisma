@@ -9,10 +9,40 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id Int @id @default(autoincrement())
+  id                             String         @id @default(uuid())
+  email                          String         @unique
+  passwordHash                   String?
+  rtHash                         String?
+  createdAt                      DateTime       @default(now())
+  updatedAt                      DateTime       @updatedAt
+  isActive                       Boolean        @default(true)
+  isVerified                     Boolean        @default(false)
+  emailVerificationCode          Int?
+  emailVerificationCodeExpiresAt DateTime?
+  resetPasswordToken             String?
+  resetPasswordExpiresAt         DateTime?
+  firstName                      String
+  lastName                       String
+  dateOfBirth                    DateTime
+  profilePicture                 String?
+  AuthProviders                  AuthProvider[]
+
+  @@map("users")
+}
+
+model AuthProvider {
+  id           String   @id @default(uuid())
+  userId       String
+  providerType String
+  providerId   String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("authProviders")
 }
