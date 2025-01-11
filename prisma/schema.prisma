@@ -101,6 +101,20 @@ model CampaignDoc {
   @@map("campaignDocs")
 }
 
+model Admin {
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  passwordHash           String?
+  rtHash                 String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  resetPasswordToken     String?
+  resetPasswordExpiresAt DateTime?
+  firstName              String
+  lastName               String
+  dateOfBirth            DateTime
+}
+
 enum CampaignStatus {
   PENDING
   ACTIVE
