@@ -54,7 +54,7 @@ export class AuthService {
       },
     });
     const verificationCode = this.generateVerificationCode();
-    console.log('generated vc:' + verificationCode);
+
     await this.saveVerificationCode(newUser.id, verificationCode);
     // genetate tokens
     const tokens = await this.generateTokens(
@@ -207,7 +207,6 @@ export class AuthService {
   }
 
   async sendVerificationEmail(email: string, verificationCode: number) {
-    console.log('starting to send email');
     const verificationEmailDto: SendEmailDto = {
       from: {
         name: 'Sewlesew',
@@ -280,9 +279,7 @@ export class AuthService {
 </html>`,
     };
     try {
-      console.log('actually sending');
       const result = await this.emailService.sendEmail(verificationEmailDto);
-      console.log(result);
 
       return { message: 'Email sent successfully', result };
     } catch (error) {
