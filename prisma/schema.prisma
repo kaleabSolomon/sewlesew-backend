@@ -28,7 +28,7 @@ model User {
   resetPasswordExpiresAt         DateTime?
   firstName                      String
   lastName                       String
-  dateOfBirth                    DateTime
+  dateOfBirth                    DateTime?
   profilePicture                 String?
   AuthProviders                  AuthProvider[]
   Campaign                       Campaign[]

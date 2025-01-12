@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -11,10 +12,18 @@ import { Match } from 'src/common/validators';
 export class SignUpDto {
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[a-zA-Z\s'-]+$/, {
+    message:
+      'Firstname can only contain letters, spaces, hyphens, and apostrophes',
+  })
   firstName: string;
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[a-zA-Z\s'-]+$/, {
+    message:
+      'Firstname can only contain letters, spaces, hyphens, and apostrophes',
+  })
   lastName: string;
 
   @IsNotEmpty()
