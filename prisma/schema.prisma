@@ -30,6 +30,7 @@ model User {
   lastName                       String
   dateOfBirth                    DateTime?
   profilePicture                 String?
+  role                           String         @default("USER")
   AuthProviders                  AuthProvider[]
   Campaign                       Campaign[]
 
@@ -90,29 +91,44 @@ model CampaignMedia {
 }
 
 model CampaignDoc {
-  id         String @id @default(uuid())
+  id         String   @id @default(uuid())
   campaignId String
   url        String
-
-  createdAt DateTime @default(now())
-
-  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@map("campaignDocs")
 }
 
 model Admin {
-  id                     String    @id @default(uuid())
-  email                  String    @unique
+  id                     String       @id @default(uuid())
+  email                  String       @unique
   passwordHash           String?
   rtHash                 String?
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
   resetPasswordToken     String?
   resetPasswordExpiresAt DateTime?
   firstName              String
   lastName               String
   dateOfBirth            DateTime
+  role                   AdminRoles
+  Moderation             Moderation[]
+
+  @@map("admins")
+}
+
+model Moderation {
+  id        String           @id @default(uuid())
+  adminId   String
+  action    AdminActions
+  target    ModerationTarget
+  targetId  String
+  reason    String?
+  createdAt DateTime         @default(now())
+  admin     Admin            @relation(fields: [id], references: [id])
+
+  @@map("mods")
 }
 
 enum CampaignStatus {
@@ -121,4 +137,25 @@ enum CampaignStatus {
   COMPLETED
   REJECTED
   REMOVED
+}
+
+enum AdminRoles {
+  SUPERADMIN
+  CALLCENTERAGENT
+  CAMPAIGNREVIEWER
+}
+
+enum AdminActions {
+  CREATE
+  DELETE
+  UPDATE
+  APPROVE
+  REJECT
+}
+
+enum ModerationTarget {
+  CAMPAIGN
+  TESTIMONIAL
+  USER
+  DONATION
 }
