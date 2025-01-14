@@ -40,6 +40,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       user.email,
       user.isActive,
       user.isVerified,
+      user.role,
     );
 
     await this.authService.updateRtHash(user.id, tokens.refresh_token);

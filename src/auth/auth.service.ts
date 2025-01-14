@@ -78,6 +78,7 @@ export class AuthService {
       newUser.email,
       newUser.isVerified,
       newUser.isActive,
+      newUser.role,
     );
     // hash refresh token and save to new user
     await this.updateRtHash(newUser.id, tokens.refresh_token);
@@ -103,6 +104,7 @@ export class AuthService {
       user.email,
       user.isVerified,
       user.isActive,
+      user.role,
     );
     // update rt
     await this.updateRtHash(user.id, tokens.refresh_token);
@@ -141,6 +143,7 @@ export class AuthService {
       user.email,
       user.isVerified,
       user.isActive,
+      user.role,
     );
 
     await this.updateRtHash(user.id, tokens.refresh_token);
@@ -156,17 +159,18 @@ export class AuthService {
     email: string,
     isVerified: boolean,
     isActive: boolean,
+    role: string,
   ) {
     const [at, rt] = await Promise.all([
       this.jwtService.sign(
-        { sub: userId, email, isVerified, isActive },
+        { sub: userId, email, isVerified, isActive, role },
         {
           secret: this.config.get('AT_SECRET'),
           expiresIn: this.config.get('AT_EXPIRESIN'),
         },
       ),
       this.jwtService.sign(
-        { sub: userId, email, isVerified, isActive },
+        { sub: userId, email, isVerified, isActive, role },
         {
           secret: this.config.get('RT_SECRET'),
           expiresIn: this.config.get('RT_EXPIRESIN'),

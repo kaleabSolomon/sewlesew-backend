@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -21,7 +24,8 @@
     "up:dev": "docker compose down && sleep 1 && docker compose up",
     "build:dev": "docker compose down && sleep 1 && docker compose up --build",
     "migrate": "docker exec -it sewlesewAPI npx prisma migrate dev",
-    "pStudio": "docker exec -it sewlesewAPI npx prisma studio"
+    "pStudio": "docker exec -it sewlesewAPI npx prisma studio",
+    "pSeed": "docker exec -it sewlesewAPI npx prisma db seed"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
