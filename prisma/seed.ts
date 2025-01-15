@@ -15,6 +15,32 @@ async function main() {
       role: 'SUPERADMIN',
     },
   });
+  const callCenterAgent = await prisma.admin.upsert({
+    where: { email: 'callcenter@sewlesew.com' },
+    update: {},
+    create: {
+      email: 'callcenter@sewlesew.com',
+      passwordHash:
+        '$argon2i$v=19$m=16,t=2,p=1$cGNXR2g3RGZpWGl3V0RPdQ$y5LPhRM9nU0PXEm4YVxQ0A',
+      firstName: 'call ',
+      lastName: 'cascauperdminenter',
+      dateOfBirth: new Date('1999-09-10'),
+      role: 'CALLCENTERAGENT',
+    },
+  });
+  const campaignReviewer = await prisma.admin.upsert({
+    where: { email: 'campaignreviewer@sewlesew.com' },
+    update: {},
+    create: {
+      email: 'campaignreviewer@sewlesew.com',
+      passwordHash:
+        '$argon2i$v=19$m=16,t=2,p=1$cGNXR2g3RGZpWGl3V0RPdQ$y5LPhRM9nU0PXEm4YVxQ0A',
+      firstName: 'campaign',
+      lastName: 'reviewer',
+      dateOfBirth: new Date('1999-09-10'),
+      role: 'CAMPAIGNREVIEWER',
+    },
+  });
   const user1 = await prisma.user.upsert({
     where: { email: 'john.doe@example.com' },
     update: {},
@@ -64,7 +90,14 @@ async function main() {
     },
   });
 
-  console.log({ user1, user2, user3, superAdmin });
+  console.log('Seeding....\n', {
+    user1,
+    user2,
+    user3,
+    superAdmin,
+    campaignReviewer,
+    callCenterAgent,
+  });
 }
 
 main()
