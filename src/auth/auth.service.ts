@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  changeAdminPasswordDto,
+  ChangePasswordDto,
   ForgotPasswordDto,
   ResetPasswordDto,
   SignInDto,
@@ -22,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
 import { SendEmailDto } from 'src/email/dto';
 import * as crypto from 'crypto';
+import { createApiResponse } from 'src/utils';
 
 type userNames = {
   familyName: string;
@@ -45,11 +48,7 @@ export class AuthService {
       throw new UnauthorizedException(
         'An Account is already registered with the given email. please Log in or register using a different email',
       );
-    // hash password
-    const passwordHash = await this.hashData(dto.password);
-
     // format date
-
     dto.dateOfBirth = moment(dto.dateOfBirth).toISOString();
 
     const age = moment().diff(dto.dateOfBirth, 'years');
@@ -58,6 +57,8 @@ export class AuthService {
       throw new BadRequestException(
         'You must be between the age of 13 and 100 years old',
       );
+    // hash password
+    const passwordHash = await this.hashData(dto.password);
 
     // save user to db
     const newUser = await this.prisma.user.create({
@@ -492,6 +493,94 @@ export class AuthService {
         resetPasswordToken: null,
         resetPasswordExpiresAt: null,
       },
+    });
+
+    return createApiResponse({
+      status: 'success',
+      message: 'Password reset successfully.',
+      data: {},
+    });
+  }
+
+  async changeUserPassword(
+    id: string,
+    dto: ChangePasswordDto,
+    resetToken: string,
+  ) {
+    const { newPassword, oldPassword } = dto;
+
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id,
+        resetPasswordToken: resetTokenHash,
+        resetPasswordExpiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Invalid or expired password reset token.',
+      );
+    }
+
+    const passwordMatches = await argon.verify(user.passwordHash, oldPassword);
+
+    if (!passwordMatches)
+      throw new ForbiddenException('old password is incorrect.');
+
+    const passwordHash = await this.hashData(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+      },
+    });
+
+    return createApiResponse({
+      status: 'success',
+      message: 'Password changed successfully.',
+      data: {},
+    });
+  }
+
+  async changePasswordAdmin(dto: changeAdminPasswordDto, otlToken: string) {
+    const { email, password } = dto;
+
+    const otlTokenHash = crypto
+      .createHash('sha256')
+      .update(otlToken)
+      .digest('hex');
+
+    const admin = await this.prisma.admin.findFirst({
+      where: {
+        email,
+        otlToken: otlTokenHash,
+        resetPasswordExpiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!admin) {
+      throw new UnauthorizedException('Invalid or expired password token.');
+    }
+    const passwordHash = await this.hashData(password);
+
+    await this.prisma.user.update({
+      where: { id: admin.id },
+      data: {
+        passwordHash,
+      },
+    });
+
+    return createApiResponse({
+      status: 'success',
+      message: 'Password set successfully.',
+      data: {},
     });
   }
 }

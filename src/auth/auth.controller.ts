@@ -121,7 +121,6 @@ export class AuthController {
     @Body() dto: ResetPasswordDto,
     @Query('token') resetToken: string,
   ) {
-    await this.authService.resetPassword(dto, resetToken);
-    return { message: 'Password successfully reset' };
+    return await this.authService.resetPassword(dto, resetToken);
   }
 }
