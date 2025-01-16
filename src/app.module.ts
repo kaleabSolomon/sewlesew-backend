@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './auth/guards';
+import { UserModule } from './user/user.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { AtGuard } from './auth/guards';
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     EmailModule,
+    UserModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [

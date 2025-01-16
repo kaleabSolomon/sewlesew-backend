@@ -113,6 +113,9 @@ model Admin {
   lastName               String
   dateOfBirth            DateTime
   role                   AdminRoles
+  otlToken               String?
+  isActive               Boolean      @default(true)
+  otlTokenExpiresAt      DateTime?
   Moderation             Moderation[]
 
   @@map("admins")
