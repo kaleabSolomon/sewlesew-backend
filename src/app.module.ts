@@ -7,6 +7,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './auth/guards';
 import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
     EmailModule,
     UserModule,
     AdminModule,
+    SmsModule,
   ],
   controllers: [],
   providers: [

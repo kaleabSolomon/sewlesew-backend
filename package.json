@@ -43,7 +43,8 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "twilio": "^5.4.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
