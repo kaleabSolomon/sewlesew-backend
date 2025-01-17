@@ -1,7 +1,7 @@
 import { IsEmail, IsOptional, IsPhoneNumber } from 'class-validator';
 import { EitherEmailOrPhone } from 'src/common/validators';
 
-export class ForgotPasswordDto {
+export class VerificationCodeResendDto {
   @IsEmail()
   @IsOptional()
   email?: string;

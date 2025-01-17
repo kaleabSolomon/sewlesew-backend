@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -15,12 +14,12 @@ import { AuthService } from './auth.service';
 
 import { GetCurrentUser, NoAuth } from 'src/common/decorators';
 import {
-  EmailResendDto,
   ForgotPasswordDto,
   ResetPasswordDto,
   SignInDto,
   SignUpDto,
-  VerifyEmailDto,
+  VerificationCodeResendDto,
+  VerifyAccountDto,
 } from './dto';
 import { GoogleAuthGuard, RtGuard } from './guards';
 import { userReq } from 'src/common/types';
@@ -34,7 +33,6 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Post('/local/signup')
   async localSignup(@Body() dto: SignUpDto) {
-    console.log(dto);
     const tokens = await this.authService.localSignup(dto);
     return tokens;
   }
@@ -93,26 +91,21 @@ export class AuthController {
   // }
 
   @HttpCode(HttpStatus.OK)
-  @Post('/verify-email')
-  async verifyEmail(@Body() dto: VerifyEmailDto) {
-    const isVerified = await this.authService.verifyEmail(dto);
-    if (!isVerified) {
-      throw new BadRequestException('Email verification failed');
-    }
-    return { message: 'Email verified successfully' };
+  @Post('/verify-account')
+  async verifyAccount(@Body() dto: VerifyAccountDto) {
+    return await this.authService.verifyAccount(dto);
   }
   @HttpCode(HttpStatus.OK)
-  @Post('/verify-email/resend')
-  async resendVerificationEmail(@Body() dto: EmailResendDto) {
-    return this.authService.resendVerificationEmail(dto.email);
+  @Post('/verify-account/resend')
+  async resendVerificationCode(@Body() dto: VerificationCodeResendDto) {
+    return this.authService.resendVerificationCode(dto);
   }
 
   @HttpCode(HttpStatus.OK)
   @NoAuth()
   @Post('/forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(dto);
-    return { message: 'Password reset email sent' };
+    return await this.authService.forgotPassword(dto);
   }
   @HttpCode(HttpStatus.OK)
   @NoAuth()

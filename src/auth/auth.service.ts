@@ -15,7 +15,8 @@ import {
   ResetPasswordDto,
   SignInDto,
   SignUpDto,
-  VerifyEmailDto,
+  VerificationCodeResendDto,
+  VerifyAccountDto,
 } from './dto';
 import * as argon from 'argon2';
 import * as moment from 'moment';
@@ -87,10 +88,11 @@ export class AuthService {
       // genetate tokens
       const tokens = await this.generateTokens(
         newUser.id,
-        newUser.email,
         newUser.isVerified,
         newUser.isActive,
         newUser.role,
+        newUser.email,
+        newUser.phoneNumber,
       );
       // hash refresh token and save to new user
       await this.updateRtHash(newUser.id, tokens.refresh_token);
@@ -118,7 +120,12 @@ export class AuthService {
   async localSignin(dto: SignInDto) {
     //validate if user exists
     const user = await this.prisma.user.findFirst({
-      where: { email: dto.email },
+      where: {
+        OR: [
+          dto.email ? { email: dto.email } : undefined,
+          dto.phoneNumber ? { phoneNumber: dto.phoneNumber } : undefined,
+        ].filter(Boolean),
+      },
     });
     if (!user || !user.isActive)
       throw new ForbiddenException('Incorrect Credentials');
@@ -129,10 +136,11 @@ export class AuthService {
     // generate tokens
     const tokens = await this.generateTokens(
       user.id,
-      user.email,
       user.isVerified,
       user.isActive,
       user.role,
+      user.email,
+      user.phoneNumber,
     );
     // update rt
     await this.updateRtHash(user.id, tokens.refresh_token);
@@ -168,10 +176,11 @@ export class AuthService {
     // generate new tokens
     const tokens = await this.generateTokens(
       user.id,
-      user.email,
       user.isVerified,
       user.isActive,
       user.role,
+      user.email,
+      user.phoneNumber,
     );
 
     await this.updateRtHash(user.id, tokens.refresh_token);
@@ -184,21 +193,28 @@ export class AuthService {
 
   async generateTokens(
     userId: string,
-    email: string,
     isVerified: boolean,
     isActive: boolean,
     role: string,
+    email: string | null,
+    phoneNumber: string | null,
   ) {
+    const identifier = email || phoneNumber;
+
+    if (!identifier)
+      throw new BadRequestException(
+        'Either an email or a phone number must be provided.',
+      );
     const [at, rt] = await Promise.all([
       this.jwtService.sign(
-        { sub: userId, email, isVerified, isActive, role },
+        { sub: userId, identifier, isVerified, isActive, role },
         {
           secret: this.config.get('AT_SECRET'),
           expiresIn: this.config.get('AT_EXPIRESIN'),
         },
       ),
       this.jwtService.sign(
-        { sub: userId, email, isVerified, isActive, role },
+        { sub: userId, identifier, isVerified, isActive, role },
         {
           secret: this.config.get('RT_SECRET'),
           expiresIn: this.config.get('RT_EXPIRESIN'),
@@ -289,12 +305,12 @@ export class AuthService {
     });
   }
 
-  async saveVerificationCode(userId: string, emailVerificationCode: number) {
+  async saveVerificationCode(userId: string, verificationCode: number) {
     await this.prisma.user.updateMany({
       where: { id: userId },
       data: {
-        emailVerificationCode,
-        emailVerificationCodeExpiresAt: new Date(Date.now() + 600000),
+        verificationCode,
+        verificationCodeExpiresAt: new Date(Date.now() + 600000),
       },
     });
   }
@@ -384,19 +400,29 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(dto: VerifyEmailDto): Promise<boolean> {
-    const { email, verificationCode } = dto;
-    const user = await this.prisma.user.findUnique({ where: { email } });
+  async verifyAccount(dto: VerifyAccountDto) {
+    const { email, phoneNumber, verificationCode } = dto;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          dto.email ? { email } : undefined,
+          dto.phoneNumber ? { phoneNumber } : undefined,
+        ].filter(Boolean),
+      },
+    });
+
+    console.log(user);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     if (user.isVerified)
       throw new NotAcceptableException('Account is Already Verified');
 
     if (
-      user.emailVerificationCode !== verificationCode ||
-      user.emailVerificationCodeExpiresAt < new Date()
+      user.verificationCode !== verificationCode ||
+      user.verificationCodeExpiresAt < new Date()
     ) {
       throw new BadRequestException('Invalid or expired verification code');
     }
@@ -406,34 +432,66 @@ export class AuthService {
       where: { id: user.id },
       data: {
         isVerified: true,
-        emailVerificationCode: null,
-        emailVerificationCodeExpiresAt: null,
+        verificationCode: null,
+        verificationCodeExpiresAt: null,
       },
     });
 
-    return true;
+    return createApiResponse({
+      status: 'success',
+      message: 'Verified account successfully',
+      data: {},
+    });
   }
 
-  async resendVerificationEmail(email: string) {
+  async resendVerificationCode(dto: VerificationCodeResendDto) {
     const verificationCode = this.generateVerificationCode();
 
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          dto.email ? { email: dto.email } : undefined,
+          dto.phoneNumber ? { phoneNumber: dto.phoneNumber } : undefined,
+        ].filter(Boolean),
+      },
+    });
     if (!user) throw new NotFoundException('user not found');
     if (user.isVerified) {
       throw new NotAcceptableException('Account is Already Verified');
     }
     await this.saveVerificationCode(user.id, verificationCode);
-    const sentEmail = await this.sendVerificationEmail(email, verificationCode);
-    if (!sentEmail)
-      throw new InternalServerErrorException('Could not send email');
-    return { message: sentEmail.message };
+
+    if (dto.email) {
+      const sentEmail = await this.sendVerificationEmail(
+        dto.email,
+        verificationCode,
+      );
+      if (!sentEmail)
+        throw new InternalServerErrorException('Could not send email');
+    } else if (dto.phoneNumber) {
+      await this.smsService.sendSMS(
+        dto.phoneNumber,
+        `Your sewlesew verification code is ${verificationCode}`,
+      );
+    }
+
+    return createApiResponse({
+      status: 'success',
+      message: 'Verification Code sent successfully',
+      data: {},
+    });
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
-    const { email } = dto;
+    const { email, phoneNumber } = dto;
     // check if user exists
     const user = await this.prisma.user.findFirst({
-      where: { email },
+      where: {
+        OR: [
+          email ? { email } : undefined,
+          phoneNumber ? { phoneNumber } : undefined,
+        ].filter(Boolean),
+      },
     });
     if (!user) throw new NotFoundException('Account not found');
     // generate reset token
@@ -447,7 +505,7 @@ export class AuthService {
 
     // update the user with tokens
     await this.prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: {
         resetPasswordToken: resetTokenHash,
         resetPasswordExpiresAt: resetTokenExpires,
@@ -478,21 +536,40 @@ export class AuthService {
       </div>
     `;
 
-    await this.emailService.sendEmail({
-      from: {
-        name: 'Afalagi',
-        address: 'noreply@Afalagi.com',
-      },
+    if (dto.email) {
+      console.log('sending email');
+      await this.emailService.sendEmail({
+        from: {
+          name: 'Afalagi',
+          address: 'noreply@Afalagi.com',
+        },
 
-      recipient: email,
-      subject: emailSubject,
-      html: emailBody,
+        recipient: email,
+        subject: emailSubject,
+        html: emailBody,
+      });
+      console.log('sent email');
+    } else if (dto.phoneNumber) {
+      console.log('sending sms');
+      await this.smsService.sendSMS(
+        user.phoneNumber,
+        `Click the link to reset your password ${resetUrl}`,
+      );
+      console.log('sent sms');
+    } else {
+      throw new BadRequestException('Could not send reset url');
+    }
+
+    return createApiResponse({
+      status: 'success',
+      message: 'Sent reset url',
+      data: {},
     });
   }
 
   async resetPassword(dto: ResetPasswordDto, resetToken: string) {
     const { newPassword } = dto;
-
+    console.log(dto, resetToken);
     const resetTokenHash = crypto
       .createHash('sha256')
       .update(resetToken)
@@ -505,6 +582,7 @@ export class AuthService {
       },
     });
 
+    console.log(user);
     if (!user) {
       throw new UnauthorizedException(
         'Invalid or expired password reset token.',
@@ -611,3 +689,4 @@ export class AuthService {
     });
   }
 }
+// TODO: what if some on uses oauth after loging in with phone?????

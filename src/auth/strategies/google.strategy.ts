@@ -37,10 +37,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     );
     const tokens = await this.authService.generateTokens(
       user.id,
-      user.email,
-      user.isActive,
       user.isVerified,
+      user.isActive,
       user.role,
+      user.email,
+      null,
     );
 
     await this.authService.updateRtHash(user.id, tokens.refresh_token);
