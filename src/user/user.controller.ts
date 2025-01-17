@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { Roles } from 'src/common/decorators';
+import { GetCurrentUser, Roles } from 'src/common/decorators';
 import { Role } from 'src/common/enums';
 
 @Controller('user')
@@ -23,4 +23,18 @@ export class UserController {
   async getUser(@Param('id') id: string) {
     return await this.userService.getUser(id);
   }
+  @Get('/me')
+  @Roles(Role.USER)
+  async getOwnUserData(@GetCurrentUser('id') id: string) {
+    return await this.userService.getUser(id);
+  }
+  // create user
+
+  // edit user
+
+  // delete user
+
+  // chagne password
+
+  //
 }

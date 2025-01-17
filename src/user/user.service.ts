@@ -9,6 +9,7 @@ export class UserService {
   returnableFieldsUser = {
     id: true,
     email: true,
+    phoneNumber: true,
     createdAt: true,
     updatedAt: true,
     isActive: true,
@@ -18,6 +19,7 @@ export class UserService {
     firstName: true,
     lastName: true,
     profilePicture: true,
+    campaign: true,
   };
 
   async getAllUsers(page: number, limit: number) {
@@ -58,4 +60,26 @@ export class UserService {
       data: user,
     });
   }
+
+  async deleteAccount(id: string) {
+    try {
+      const user = await this.prisma.user.findFirst({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+      await this.prisma.user.update({
+        where: { id },
+        data: { isActive: false, rtHash: null },
+      });
+
+      return createApiResponse({
+        status: 'success',
+        message: 'deleted account.',
+        data: {},
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  // async createAccount();
+  // async createAccount();
 }
