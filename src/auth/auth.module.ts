@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { AtStrategy, GoogleStrategy, RtStrategy } from './strategies';
 import { EmailService } from 'src/email/email.service';
+import { SmsService } from 'src/sms/sms.service';
 
 @Module({
   imports: [JwtModule.register({ global: true })],
@@ -13,6 +14,7 @@ import { EmailService } from 'src/email/email.service';
     RtStrategy,
     EmailService,
     GoogleStrategy,
+    SmsService,
   ],
   controllers: [AuthController],
 })

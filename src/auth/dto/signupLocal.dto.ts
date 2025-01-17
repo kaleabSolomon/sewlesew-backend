@@ -2,12 +2,14 @@ import {
   IsDateString,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
   IsString,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Match } from 'src/common/validators';
+import { EitherEmailOrPhone, Match } from 'src/common/validators';
 
 export class SignUpDto {
   @IsString()
@@ -31,7 +33,17 @@ export class SignUpDto {
   dateOfBirth: string;
 
   @IsEmail()
-  email: string;
+  @IsOptional()
+  email?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  phoneNumber?: string;
+
+  @EitherEmailOrPhone({
+    message: 'Either an email or a phone number must be provided',
+  })
+  eitherEmailOrPhone!: string;
 
   @IsNotEmpty()
   @MinLength(6)

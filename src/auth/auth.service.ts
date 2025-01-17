@@ -25,6 +25,7 @@ import { EmailService } from 'src/email/email.service';
 import { SendEmailDto } from 'src/email/dto';
 import * as crypto from 'crypto';
 import { createApiResponse } from 'src/utils';
+import { SmsService } from 'src/sms/sms.service';
 
 type userNames = {
   familyName: string;
@@ -38,55 +39,81 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
+    private smsService: SmsService,
   ) {}
 
   async localSignup(dto: SignUpDto) {
-    const user = await this.prisma.user.findFirst({
-      where: { email: dto.email },
-    });
-    if (user)
-      throw new UnauthorizedException(
-        'An Account is already registered with the given email. please Log in or register using a different email',
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          OR: [
+            dto.email ? { email: dto.email } : undefined,
+            dto.phoneNumber ? { phoneNumber: dto.phoneNumber } : undefined,
+          ].filter(Boolean), // Remove undefined entries
+        },
+      });
+
+      if (user)
+        throw new UnauthorizedException(
+          'An Account is already registered with the given email. please Log in or register using a different email',
+        );
+      // format date
+      dto.dateOfBirth = moment(dto.dateOfBirth).toISOString();
+
+      const age = moment().diff(dto.dateOfBirth, 'years');
+
+      if (age < 13 && age > 100)
+        throw new BadRequestException(
+          'You must be between the age of 13 and 100 years old',
+        );
+      // hash password
+      const passwordHash = await this.hashData(dto.password);
+
+      // save user to db
+      const newUser = await this.prisma.user.create({
+        data: {
+          ...(dto.email && { email: dto.email }), // Include email only if it's provided
+          ...(dto.phoneNumber && { phoneNumber: dto.phoneNumber }), // Include phoneNumber only if it's provided
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          dateOfBirth: dto.dateOfBirth,
+          passwordHash,
+        },
+      });
+
+      const verificationCode = this.generateVerificationCode();
+
+      await this.saveVerificationCode(newUser.id, verificationCode);
+      // genetate tokens
+      const tokens = await this.generateTokens(
+        newUser.id,
+        newUser.email,
+        newUser.isVerified,
+        newUser.isActive,
+        newUser.role,
       );
-    // format date
-    dto.dateOfBirth = moment(dto.dateOfBirth).toISOString();
+      // hash refresh token and save to new user
+      await this.updateRtHash(newUser.id, tokens.refresh_token);
 
-    const age = moment().diff(dto.dateOfBirth, 'years');
-
-    if (age < 13 && age > 100)
-      throw new BadRequestException(
-        'You must be between the age of 13 and 100 years old',
-      );
-    // hash password
-    const passwordHash = await this.hashData(dto.password);
-
-    // save user to db
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        dateOfBirth: dto.dateOfBirth,
-        passwordHash,
-      },
-    });
-    const verificationCode = this.generateVerificationCode();
-
-    await this.saveVerificationCode(newUser.id, verificationCode);
-    // genetate tokens
-    const tokens = await this.generateTokens(
-      newUser.id,
-      newUser.email,
-      newUser.isVerified,
-      newUser.isActive,
-      newUser.role,
-    );
-    // hash refresh token and save to new user
-    await this.updateRtHash(newUser.id, tokens.refresh_token);
-    // send email asking to verify the email
-    await this.sendVerificationEmail(newUser.email, verificationCode);
-    // return tokens
-    return tokens;
+      if (dto.email) {
+        console.log('sending email');
+        await this.sendVerificationEmail(newUser.email, verificationCode);
+        console.log('sent email');
+      } else if (dto.phoneNumber) {
+        console.log('sending sms');
+        await this.smsService.sendSMS(
+          newUser.phoneNumber,
+          `Your Sewlesew verificaton number is ${verificationCode}`,
+        );
+        console.log('sent sms');
+      } else {
+        throw new BadRequestException('Could not send verification message');
+      }
+      // return tokens
+      return tokens;
+    } catch (err) {
+      console.log(err);
+    }
   }
   async localSignin(dto: SignInDto) {
     //validate if user exists
