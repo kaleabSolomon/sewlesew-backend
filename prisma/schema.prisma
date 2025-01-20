@@ -32,8 +32,8 @@ model User {
   dateOfBirth               DateTime?
   profilePicture            String?
   role                      String         @default("USER")
-  AuthProviders             AuthProvider[]
-  Campaign                  Campaign[]
+  authProviders             AuthProvider[]
+  campaigns                 Campaign[]
 
   @@map("users")
 }
@@ -50,6 +50,26 @@ model AuthProvider {
   @@map("authProviders")
 }
 
+model BankDetail {
+  id            String   @id @default(uuid())
+  holderName    String
+  bankName      String
+  accountNumber String
+  campaignId    String   @unique
+  campaign      Campaign @relation("CampaignBankDetails", fields: [campaignId], references: [id])
+
+  @@map("bank_details")
+}
+
+model Category {
+  id       String     @id @default(uuid())
+  label    String
+  slug     String     @unique
+  campaign Campaign[]
+
+  @@map("categories")
+}
+
 model Campaign {
   id           String         @id @default(uuid())
   userId       String
@@ -58,25 +78,83 @@ model Campaign {
   goalAmount   Decimal        @db.Decimal(12, 2)
   raisedAmount Decimal        @default(0.00) @db.Decimal(12, 2)
   status       CampaignStatus @default(PENDING)
+  deadline     DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Relations
 
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categories    Category[]      @relation("CampaignCategories")
-  CampaignMedia CampaignMedia[]
-  CampaignDoc   CampaignDoc[]
+  campaignMedia CampaignMedia[] @relation("OtherCampaignMedia")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  Category   Category @relation(fields: [categoryId], references: [id])
+
+  BankDetail BankDetail? @relation("CampaignBankDetails")
+
+  businessId String?   @unique
+  charityId  String?   @unique
+  business   Business? @relation(fields: [businessId], references: [id])
+  charity    Charity?  @relation(fields: [charityId], references: [id])
 
   @@map("campaigns")
 }
 
-model Category {
-  id        String     @id @default(uuid())
-  label     String
-  slug      String     @unique
-  campaigns Campaign[] @relation("CampaignCategories")
+model Business {
+  id                String         @id @default(uuid())
+  fullName          String
+  website           String?
+  sector            BusinessSector
+  tinNumber         String
+  licenseNumber     String
+  logo              String?
+  publicEmail       String?
+  publicPhoneNumber String?
+  contactEmail      String
+  contactPhone      String
+  region            String
+  city              String
+  relativeLocation  String?
 
-  @@map("categories")
+  tinCertificateId String
+
+  docs     CampaignDoc[]
+  campaign Campaign?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+
+  @@map("businesses")
+}
+
+model Charity {
+  id                 String  @id @default(uuid())
+  fullName           String
+  isOrganization     Boolean
+  registrationNumber String?
+  tinNumber          String?
+  logo               String?
+  website            String?
+  publicEmail        String
+  publicPhoneNumber  String
+  contactEmail       String
+  contactPhone       String
+  region             String
+  city               String
+  relativeLocation   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaign Campaign?
+
+  // 
+  docs CampaignDoc[]
+
+  @@map("charities")
 }
 
 model CampaignMedia {
@@ -84,19 +162,29 @@ model CampaignMedia {
   campaignId String
   url        String
 
+  imageType ImageType
+
   createdAt DateTime @default(now())
 
-  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  // Relations
+  campaignMedia Campaign @relation("OtherCampaignMedia", fields: [campaignId], references: [id])
 
   @@map("campaignMedias")
 }
 
 model CampaignDoc {
-  id         String   @id @default(uuid())
-  campaignId String
-  url        String
-  createdAt  DateTime @default(now())
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  url       String
+  createdAt DateTime @default(now())
+
+  docType DocType
+
+  // Relations
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  charityId String
+  charity   Charity @relation(fields: [charityId], references: [id], onDelete: Cascade)
 
   @@map("campaignDocs")
 }
@@ -162,4 +250,36 @@ enum ModerationTarget {
   TESTIMONIAL
   USER
   DONATION
+}
+
+enum BusinessSector {
+  AGRICULTURE
+  CONSTRUCTION
+  EDUCATION
+  ENERGY
+  MANUFACTURING
+  MEDIA
+  MINING
+  TECHNOLOGY
+  TEXTILE
+  TOURISM
+  TRANSPORT
+  OTHER
+}
+
+enum PersonalCause {
+  MEDICAL
+  RELOCATION
+  REHABILITATION
+}
+
+enum DocType {
+  TIN_CERTIFICATE
+  REGISTRATION_CERTIFICATE
+  SUPPORTING_DOCUMENT
+}
+
+enum ImageType {
+  COVER_IMAGE
+  SUPPORTING_IMAGE
 }
