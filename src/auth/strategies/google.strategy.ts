@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { AuthService } from '../auth.service';
+import { RoleTypes } from 'src/common/enums';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -44,7 +45,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       null,
     );
 
-    await this.authService.updateRtHash(user.id, tokens.refresh_token);
+    await this.authService.updateRtHash(
+      user.id,
+      tokens.refresh_token,
+      RoleTypes.USER,
+    );
 
     return {
       access_token: tokens.access_token,

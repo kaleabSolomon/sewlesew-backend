@@ -24,6 +24,7 @@ import {
 import { GoogleAuthGuard, RtGuard } from './guards';
 import { userReq } from 'src/common/types';
 import { Request, Response } from 'express';
+import { RoleTypes } from 'src/common/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -47,7 +48,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/logout')
   async logout(@GetCurrentUser('userId') userId: string) {
-    return await this.authService.logout(userId);
+    return await this.authService.logout(userId, RoleTypes.USER);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -115,5 +116,31 @@ export class AuthController {
     @Query('token') resetToken: string,
   ) {
     return await this.authService.resetPassword(dto, resetToken);
+  }
+
+  @NoAuth()
+  @HttpCode(HttpStatus.OK)
+  @Post('admin/local/signin')
+  async adminLocalSignin(@Body() dto: SignInDto) {
+    const tokens = await this.authService.adminLocalSignin(dto);
+    return tokens;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('admin/logout')
+  async adminLogout(@GetCurrentUser('userId') userId: string) {
+    return await this.authService.logout(userId, RoleTypes.ADMIN);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @NoAuth()
+  @UseGuards(RtGuard)
+  @Post('admin/refresh')
+  async adminRefresh(@GetCurrentUser() user: userReq) {
+    const tokens = await this.authService.adminRefresh(
+      user['userId'],
+      user['refreshToken'],
+    );
+    return tokens;
   }
 }

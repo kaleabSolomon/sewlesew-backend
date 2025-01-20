@@ -1,7 +1,7 @@
 export type userReq = {
   userId: string;
   email: string;
-  isVerified: boolean;
+  isVerified?: boolean;
   isActive: boolean;
   refreshToken?: string;
 };

@@ -4,7 +4,10 @@ export enum Role {
   CALLCENTERAGENT = 'CALLCENTERAGENT',
   CAMPAIGNREVIEWER = 'CAMPAIGNREVIEWER',
 }
-
+export enum RoleTypes {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
 export enum AdminRole {
   SUPERADMIN = 'SUPERADMIN',
   CALLCENTERAGENT = 'CALLCENTERAGENT',

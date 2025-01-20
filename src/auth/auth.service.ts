@@ -27,6 +27,7 @@ import { SendEmailDto } from 'src/email/dto';
 import * as crypto from 'crypto';
 import { createApiResponse } from 'src/utils';
 import { SmsService } from 'src/sms/sms.service';
+import { RoleTypes } from 'src/common/enums';
 
 type userNames = {
   familyName: string;
@@ -95,7 +96,7 @@ export class AuthService {
         newUser.phoneNumber,
       );
       // hash refresh token and save to new user
-      await this.updateRtHash(newUser.id, tokens.refresh_token);
+      await this.updateRtHash(newUser.id, tokens.refresh_token, RoleTypes.USER);
 
       if (dto.email) {
         console.log('sending email');
@@ -143,17 +144,24 @@ export class AuthService {
       user.phoneNumber,
     );
     // update rt
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.refresh_token, RoleTypes.USER);
     // return tokens
     return tokens;
   }
-  async logout(id: string) {
+  async logout(id: string, role: RoleTypes) {
     try {
-      await this.prisma.user.updateMany({
-        where: { id, rtHash: { not: null } },
-        data: { rtHash: null },
-      });
-
+      console.log(id);
+      if (role == RoleTypes.USER) {
+        await this.prisma.user.updateMany({
+          where: { id, rtHash: { not: null } },
+          data: { rtHash: null },
+        });
+      } else {
+        await this.prisma.admin.updateMany({
+          where: { id, rtHash: { not: null } },
+          data: { rtHash: null },
+        });
+      }
       return {
         status: 'success',
         message: 'Logged out Successfully.',
@@ -183,7 +191,7 @@ export class AuthService {
       user.phoneNumber,
     );
 
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.refresh_token, RoleTypes.USER);
     return tokens;
   }
 
@@ -193,7 +201,7 @@ export class AuthService {
 
   async generateTokens(
     userId: string,
-    isVerified: boolean,
+    isVerified: boolean | null,
     isActive: boolean,
     role: string,
     email: string | null,
@@ -224,15 +232,24 @@ export class AuthService {
     return { access_token: at, refresh_token: rt };
   }
 
-  async updateRtHash(userId: string, rt: string) {
+  async updateRtHash(userId: string, rt: string, target: RoleTypes) {
     const rtHash = await this.hashData(rt);
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        rtHash,
-      },
-    });
+    if (target == RoleTypes.USER) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          rtHash,
+        },
+      });
+    } else {
+      await this.prisma.admin.update({
+        where: { id: userId },
+        data: {
+          rtHash,
+        },
+      });
+    }
   }
 
   async validateProviderUser(
@@ -247,7 +264,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: {
-        AuthProviders: {
+        authProviders: {
           select: {
             id: true,
             providerId: true,
@@ -259,7 +276,7 @@ export class AuthService {
 
     if (user) {
       // Check if the auth provider is already linked
-      const providerExists = user.AuthProviders.some(
+      const providerExists = user.authProviders.some(
         (provider) =>
           provider.providerType === providerType &&
           provider.providerId === providerId,
@@ -279,7 +296,7 @@ export class AuthService {
       return this.prisma.user.findUnique({
         where: { email },
         include: {
-          AuthProviders: true,
+          authProviders: true,
         },
       });
     }
@@ -292,7 +309,7 @@ export class AuthService {
         email,
         isVerified,
         profilePicture: profilePic,
-        AuthProviders: {
+        authProviders: {
           create: {
             providerId,
             providerType,
@@ -300,7 +317,7 @@ export class AuthService {
         },
       },
       include: {
-        AuthProviders: true,
+        authProviders: true,
       },
     });
   }
@@ -607,23 +624,12 @@ export class AuthService {
     });
   }
 
-  async changeUserPassword(
-    id: string,
-    dto: ChangePasswordDto,
-    resetToken: string,
-  ) {
+  async changeUserPassword(id: string, dto: ChangePasswordDto) {
     const { newPassword, oldPassword } = dto;
-
-    const resetTokenHash = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
 
     const user = await this.prisma.user.findFirst({
       where: {
         id,
-        resetPasswordToken: resetTokenHash,
-        resetPasswordExpiresAt: { gt: new Date() },
       },
     });
 
@@ -666,7 +672,6 @@ export class AuthService {
       where: {
         email,
         otlToken: otlTokenHash,
-        resetPasswordExpiresAt: { gt: new Date() },
       },
     });
 
@@ -688,5 +693,59 @@ export class AuthService {
       data: {},
     });
   }
+
+  async adminLocalSignin(dto: SignInDto) {
+    //validate if user exists
+    const admin = await this.prisma.admin.findFirst({
+      where: {
+        email: dto.email,
+      },
+    });
+    if (!admin || !admin.isActive)
+      throw new ForbiddenException('Incorrect Credentials');
+
+    // validate if password matches
+    const pwMatches = await argon.verify(admin.passwordHash, dto.password);
+    if (!pwMatches) throw new ForbiddenException('Incorrect Credentials');
+    // generate tokens
+    const tokens = await this.generateTokens(
+      admin.id,
+      null,
+      admin.isActive,
+      admin.role,
+      admin.email,
+      null,
+    );
+    // update rt
+    await this.updateRtHash(admin.id, tokens.refresh_token, RoleTypes.ADMIN);
+    // return tokens
+    return tokens;
+  }
+
+  async adminRefresh(id: string, refreshToken: string) {
+    // get user
+    const admin = await this.prisma.admin.findFirst({ where: { id } });
+
+    if (!admin) throw new ForbiddenException('Access Denied');
+    // check if the refresh token and hashed rt in db match
+
+    const rtMatches = await argon.verify(admin.rtHash, refreshToken);
+
+    if (!rtMatches) throw new ForbiddenException('Access Denied');
+
+    // generate new tokens
+    const tokens = await this.generateTokens(
+      admin.id,
+      null,
+      admin.isActive,
+      admin.role,
+      admin.email,
+      null,
+    );
+
+    await this.updateRtHash(admin.id, tokens.refresh_token, RoleTypes.ADMIN);
+    return tokens;
+  }
 }
+
 // TODO: what if some on uses oauth after loging in with phone?????
