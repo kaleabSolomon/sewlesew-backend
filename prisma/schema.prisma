@@ -219,7 +219,7 @@ model Moderation {
   targetId  String
   reason    String?
   createdAt DateTime         @default(now())
-  admin     Admin            @relation(fields: [id], references: [id])
+  admin     Admin            @relation(fields: [adminId], references: [id])
 
   @@map("mods")
 }
