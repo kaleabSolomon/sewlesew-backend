@@ -98,6 +98,7 @@ model Campaign {
   business   Business? @relation(fields: [businessId], references: [id])
   charity    Charity?  @relation(fields: [charityId], references: [id])
 
+  @@index([businessId, charityId])
   @@map("campaigns")
 }
 
