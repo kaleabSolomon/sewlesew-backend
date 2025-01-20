@@ -8,6 +8,7 @@ import { AtGuard } from './auth/guards';
 import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { SmsModule } from './sms/sms.module';
+import { ModerationModule } from './moderation/moderation.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SmsModule } from './sms/sms.module';
     UserModule,
     AdminModule,
     SmsModule,
+    ModerationModule,
   ],
   controllers: [],
   providers: [
