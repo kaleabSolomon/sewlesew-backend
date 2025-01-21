@@ -9,6 +9,8 @@ import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { SmsModule } from './sms/sms.module';
 import { ModerationModule } from './moderation/moderation.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
   imports: [
@@ -20,12 +22,17 @@ import { ModerationModule } from './moderation/moderation.module';
     AdminModule,
     SmsModule,
     ModerationModule,
+    CloudinaryModule,
   ],
   controllers: [],
   providers: [
     {
       provide: APP_GUARD,
       useClass: AtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
