@@ -24,6 +24,7 @@ export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
       refreshToken,
       isActive: payload.isActive,
       isVerified: payload.isVerified,
+      role: payload.role,
     };
     return user;
   }

@@ -17,10 +17,12 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: any) {
     const user: userReq = {
       userId: payload.sub,
-      email: payload.email,
+      email: payload.identifier,
       isVerified: payload.isVerified,
       isActive: payload.isActive,
+      role: payload.role,
     };
+
     return user;
   }
 }
