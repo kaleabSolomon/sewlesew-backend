@@ -11,6 +11,7 @@ import { SmsModule } from './sms/sms.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { CampaignModule } from './campaign/campaign.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     SmsModule,
     ModerationModule,
     CloudinaryModule,
+    CampaignModule,
   ],
   controllers: [],
   providers: [
