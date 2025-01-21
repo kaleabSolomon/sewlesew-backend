@@ -1,8 +1,26 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
+import { EitherEmailOrPhone } from 'src/common/validators';
 
 export class CreateUserDto {
   @IsEmail()
-  email: string;
+  @IsOptional()
+  email?: string;
+
+  @IsPhoneNumber()
+  @IsOptional()
+  phoneNumber?: string;
+
+  @EitherEmailOrPhone({
+    message: 'Either phone number or email must be provided',
+  })
+  eitherEmailOrPhone!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -11,4 +29,8 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  dateOfBirth: string;
 }

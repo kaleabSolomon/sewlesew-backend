@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import * as moment from 'moment';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createApiResponse } from 'src/utils';
+import { EditUserDto } from './dto';
 
 @Injectable()
 export class UserService {
@@ -19,7 +25,7 @@ export class UserService {
     firstName: true,
     lastName: true,
     profilePicture: true,
-    campaign: true,
+    campaigns: true,
   };
 
   async getAllUsers(page: number, limit: number) {
@@ -80,6 +86,77 @@ export class UserService {
     }
   }
 
-  // async createAccount();
-  // async createAccount();
+  // async createUser(dto: CreateUserDto) {
+  //   try {
+  //     const { email, phoneNumber } = dto;
+
+  //     const user = await this.prisma.user.findFirst({
+  //       where: {
+  //         OR: [
+  //           email ? { email } : undefined,
+  //           phoneNumber ? { phoneNumber } : undefined,
+  //         ].filter(Boolean),
+  //       },
+  //     });
+
+  //     if (user) {
+  //       throw new ConflictException(
+  //         'User with given credential already exists',
+  //       );
+  //     }
+
+  //     dto.dateOfBirth = moment(dto.dateOfBirth).toISOString();
+
+  //     const age = moment().diff(dto.dateOfBirth, 'years');
+
+  //     if (age < 13 && age > 100)
+  //       throw new BadRequestException(
+  //         'You must be between the age of 13 and 100 years old',
+  //       );
+
+  //     const newUser = await this.prisma.user.create({
+  //       data: {
+  //         ...dto,
+  //       },
+  //     });
+
+  //     return createApiResponse({
+  //       status: 'success',
+  //       message: 'Created User Successfully. ',
+  //       data: newUser,
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
+
+  async editUser(dto: EditUserDto, id: string, profilePicture?: string) {
+    try {
+      if (dto.dateOfBirth) {
+        dto.dateOfBirth = moment(dto.dateOfBirth).toISOString();
+
+        const age = moment().diff(dto.dateOfBirth, 'years');
+
+        if (age < 13 && age > 100)
+          throw new BadRequestException(
+            'You must be between the age of 13 and 100 years old',
+          );
+      }
+
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: { ...dto, profilePicture },
+      });
+
+      if (!user) throw new BadRequestException('Could not Update User Data');
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Updated user successfully',
+        data: user,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
 }

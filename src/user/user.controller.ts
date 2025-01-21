@@ -1,11 +1,32 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  Param,
+  Patch,
+  Query,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { GetCurrentUser, Roles } from 'src/common/decorators';
 import { Role } from 'src/common/enums';
+import { ChangePasswordDto } from 'src/auth/dto';
+import { AuthService } from 'src/auth/auth.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { EditUserDto } from './dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private authService: AuthService,
+    private cloudinary: CloudinaryService,
+  ) {}
 
   @Get('')
   @Roles(Role.SUPERADMIN)
@@ -28,13 +49,62 @@ export class UserController {
   async getOwnUserData(@GetCurrentUser('id') id: string) {
     return await this.userService.getUser(id);
   }
-  // create user
 
-  // edit user
+  // @Post('')
+  // @Roles(Role.CALLCENTERAGENT)
+  // async createUser(dto: CreateUserDto) {
+  //   return await this.userService.createUser(dto);
+  // }
+
+  @Patch('')
+  @Roles(Role.USER)
+  @UseInterceptors(FileInterceptor('profileImg'))
+  async editUser(
+    @Body() dto: EditUserDto,
+    @GetCurrentUser('userId') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      let media: UploadApiResponse | UploadApiErrorResponse | undefined;
+
+      if (file) {
+        media = await this.cloudinary.uploadFile(file);
+
+        if (!media || !media.url) {
+          throw new InternalServerErrorException(
+            'Failed to upload profile picture',
+          );
+        }
+      }
+
+      console.log(media);
+
+      return media?.url
+        ? await this.userService.editUser(dto, id, media.url)
+        : await this.userService.editUser(dto, id);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  @Patch('/password')
+  @Roles(Role.USER)
+  async changeUserPassword(
+    @GetCurrentUser('id') id: string,
+    dto: ChangePasswordDto,
+  ) {
+    return await this.authService.changeUserPassword(id, dto);
+  }
 
   // delete user
 
-  // chagne password
+  @Roles(Role.USER)
+  @Delete('')
+  async deleteAccount(@GetCurrentUser('id') id: string) {
+    return await this.userService.deleteAccount(id);
+  }
+
+  // chagne password by admins for users. will be sent through email or phone text
 
   //
 }
