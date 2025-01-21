@@ -146,6 +146,7 @@ export class UserService {
       const user = await this.prisma.user.update({
         where: { id },
         data: { ...dto, profilePicture },
+        select: this.returnableFieldsUser,
       });
 
       if (!user) throw new BadRequestException('Could not Update User Data');
