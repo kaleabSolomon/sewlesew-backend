@@ -3,7 +3,7 @@ import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
 export class CloudinaryService {
   constructor(@Inject('CLOUDINARY') private readonly cloudinary) {}
-  async uploadImage(
+  async uploadFile(
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
