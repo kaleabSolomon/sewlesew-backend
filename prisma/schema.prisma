@@ -61,21 +61,13 @@ model BankDetail {
   @@map("bank_details")
 }
 
-model Category {
-  id       String     @id @default(uuid())
-  label    String
-  slug     String     @unique
-  campaign Campaign[]
-
-  @@map("categories")
-}
-
 model Campaign {
   id           String         @id @default(uuid())
   userId       String
   title        String         @db.VarChar(50)
   description  String
   goalAmount   Decimal        @db.Decimal(12, 2)
+  category     Category
   raisedAmount Decimal        @default(0.00) @db.Decimal(12, 2)
   status       CampaignStatus @default(PENDING)
   deadline     DateTime?
@@ -87,9 +79,6 @@ model Campaign {
   campaignMedia CampaignMedia[] @relation("OtherCampaignMedia")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  categoryId String
-  Category   Category @relation(fields: [categoryId], references: [id])
 
   BankDetail BankDetail? @relation("CampaignBankDetails")
 
@@ -103,10 +92,11 @@ model Campaign {
 }
 
 model Business {
-  id                String         @id @default(uuid())
-  fullName          String
-  website           String?
-  sector            BusinessSector
+  id       String         @id @default(uuid())
+  fullName String
+  website  String?
+  sector   BusinessSector
+
   tinNumber         String
   licenseNumber     String
   logo              String?
@@ -117,8 +107,6 @@ model Business {
   region            String
   city              String
   relativeLocation  String?
-
-  tinCertificateId String
 
   docs     CampaignDoc[]
   campaign Campaign?
@@ -139,8 +127,8 @@ model Charity {
   tinNumber          String?
   logo               String?
   website            String?
-  publicEmail        String
-  publicPhoneNumber  String
+  publicEmail        String?
+  publicPhoneNumber  String?
   contactEmail       String
   contactPhone       String
   region             String
@@ -268,15 +256,24 @@ enum BusinessSector {
   OTHER
 }
 
-enum PersonalCause {
+enum Category {
   MEDICAL
   RELOCATION
   REHABILITATION
+  DISASTER_RELIEF
+  LEGAL
+  CHILDCARE
+  EDUCATION
+  STARTUP_FUNDING
+  PRODUCT_LAUNCH
+  BUSINESS_EXPANSION
+  EVENT_SPONSORSHIP
 }
 
 enum DocType {
   TIN_CERTIFICATE
   REGISTRATION_CERTIFICATE
+  PERSONAL_DOCUMENT
   SUPPORTING_DOCUMENT
 }
 
