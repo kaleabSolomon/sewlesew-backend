@@ -66,9 +66,9 @@ model Campaign {
   userId       String
   title        String         @db.VarChar(50)
   description  String
-  goalAmount   Decimal        @db.Decimal(12, 2)
+  goalAmount   Decimal        @db.Decimal(11, 2)
   category     Category
-  raisedAmount Decimal        @default(0.00) @db.Decimal(12, 2)
+  raisedAmount Decimal        @default(0.00) @db.Decimal(11, 2)
   status       CampaignStatus @default(PENDING)
   deadline     DateTime?
   createdAt    DateTime       @default(now())
