@@ -167,11 +167,11 @@ model CampaignDoc {
   docType DocType
 
   // Relations
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  charityId String
-  charity   Charity @relation(fields: [charityId], references: [id], onDelete: Cascade)
+  charityId String?
+  charity   Charity? @relation(fields: [charityId], references: [id], onDelete: Cascade)
 
   @@map("campaignDocs")
 }
