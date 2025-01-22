@@ -76,7 +76,7 @@ model Campaign {
 
   // Relations
 
-  campaignMedia CampaignMedia[] @relation("OtherCampaignMedia")
+  campaignMedia CampaignMedia[] @relation("CampaignMedia")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -97,9 +97,8 @@ model Business {
   website  String?
   sector   BusinessSector
 
-  tinNumber         String
-  licenseNumber     String
-  logo              String?
+  tinNumber         String  @unique
+  licenseNumber     String  @unique
   publicEmail       String?
   publicPhoneNumber String?
   contactEmail      String
@@ -120,20 +119,19 @@ model Business {
 }
 
 model Charity {
-  id                 String  @id @default(uuid())
-  fullName           String
-  isOrganization     Boolean
-  registrationNumber String?
-  tinNumber          String?
-  logo               String?
-  website            String?
-  publicEmail        String?
-  publicPhoneNumber  String?
-  contactEmail       String
-  contactPhone       String
-  region             String
-  city               String
-  relativeLocation   String?
+  id                String  @id @default(uuid())
+  fullName          String
+  isOrganization    Boolean
+  licenseNumber     String? @unique
+  tinNumber         String? @unique
+  website           String?
+  publicEmail       String?
+  publicPhoneNumber String?
+  contactEmail      String
+  contactPhone      String
+  region            String
+  city              String
+  relativeLocation  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -156,7 +154,7 @@ model CampaignMedia {
   createdAt DateTime @default(now())
 
   // Relations
-  campaignMedia Campaign @relation("OtherCampaignMedia", fields: [campaignId], references: [id])
+  campaignMedia Campaign @relation("CampaignMedia", fields: [campaignId], references: [id])
 
   @@map("campaignMedias")
 }
@@ -288,4 +286,5 @@ enum DocType {
 enum ImageType {
   COVER_IMAGE
   SUPPORTING_IMAGE
+  LOGO
 }
