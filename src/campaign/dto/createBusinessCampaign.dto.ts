@@ -5,8 +5,8 @@ import { BusinessCategories } from 'src/common/enums';
 
 export class CreateBusinessCampaignDto extends CreateCampaignBaseDto {
   @IsString()
-  @IsNotEmpty()
-  website: string;
+  @IsOptional()
+  website?: string;
 
   @IsEnum(BusinessSector, {
     message: 'Please Select one of the listed business sectors',
@@ -20,10 +20,6 @@ export class CreateBusinessCampaignDto extends CreateCampaignBaseDto {
   @IsString()
   @IsNotEmpty()
   licenseNumber: string;
-
-  @IsString()
-  @IsOptional()
-  logo?: string;
 
   @IsEnum(BusinessCategories, {
     message: 'Invalid category. Please select one of the listed categories.',

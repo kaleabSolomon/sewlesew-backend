@@ -4,12 +4,13 @@ import {
   IsOptional,
   IsEmail,
   IsPhoneNumber,
-  Max,
   MinLength,
-  IsDecimal,
   IsDateString,
+  IsNumber,
+  Min,
+  MaxLength,
 } from 'class-validator';
-
+import { Transform } from 'class-transformer';
 export class CreateCampaignBaseDto {
   @IsString()
   @IsNotEmpty()
@@ -51,15 +52,16 @@ export class CreateCampaignBaseDto {
   @MinLength(50, {
     message: 'A Description should Atleas be 50 characters long',
   })
-  @MinLength(600, {
-    message: 'A Description should be no more than characters long',
+  @MaxLength(600, {
+    message: 'A Description should be no more 600 than characters long',
   })
   @IsNotEmpty()
-  descripton: string;
+  description: string;
 
-  @IsDecimal()
-  @Max(1, { message: 'Goal amount less than allowd' })
   @IsNotEmpty()
+  @Transform(({ value }) => parseFloat(value))
+  @IsNumber({}, { message: 'Goal amount must be a valid number' })
+  @Min(1.01, { message: 'Goal amount must be more than 1' })
   goalAmount: number;
 
   @IsDateString()

@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsEnum,
-  IsOptional,
-  IsBoolean,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsBoolean } from 'class-validator';
 import { CharityCategories } from 'src/common/enums';
 import { CreateCampaignBaseDto } from './createCampaignBase.dto';
 
@@ -22,11 +16,7 @@ export class CreateOrganizationalCharityCampaignDto extends CreateCampaignBaseDt
 
   @IsString()
   @IsNotEmpty()
-  registrationNumber: string;
-
-  @IsString()
-  @IsOptional()
-  logo?: string;
+  licenseNumber: string;
 
   @IsEnum(CharityCategories, {
     message: 'Invalid category. Please select one of the listed categories.',
