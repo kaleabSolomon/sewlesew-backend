@@ -239,12 +239,20 @@ export class CampaignController {
       coverImage?: Express.Multer.File[];
       otherImages?: Express.Multer.File[];
     },
-    dto: CreateOrganizationalCharityCampaignDto,
+    @Body() dto: CreateOrganizationalCharityCampaignDto,
   ) {
-    const { deadline } = dto;
     let docs: Doc[] = [];
     let images: Image[] = [];
     let logo: UploadApiResponse | UploadApiErrorResponse | undefined;
+
+    const campaignExists = await this.campaignService.checkCampaignExists(
+      dto.tinNumber,
+      dto.licenseNumber,
+    );
+    if (campaignExists)
+      throw new ConflictException(
+        'This Business or Charity is Already Registered. ',
+      );
     if (!files.tinCertificate || files.tinCertificate.length === 0) {
       throw new BadRequestException(
         'tin certificate is required to proceed with registration',
@@ -262,12 +270,8 @@ export class CampaignController {
       );
     }
 
-    if (!deadline) {
-      throw new BadRequestException('Deadline is required.');
-    }
-
     // Check if deadline is at least 3 days in the future
-    const deadlineDate = moment(deadline);
+    const deadlineDate = moment(dto.deadline);
     const now = moment();
     const minDate = now.add(3, 'days');
 

@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -172,16 +168,9 @@ export class CampaignService {
     images: Image[],
     docs: Doc[],
   ) {
-    try {
-      const campaignExists = await this.checkCampaignExists(
-        dto.tinNumber,
-        dto.licenseNumber,
-      );
-      if (campaignExists)
-        throw new ConflictException(
-          'This Business or Charity is Already Registered. ',
-        );
+    dto.deadline = moment(dto.deadline).toISOString();
 
+    try {
       const charity = await this.prisma.charity.create({
         data: {
           fullName: dto.fullName,
@@ -207,7 +196,7 @@ export class CampaignService {
       if (docs) {
         await this.prisma.campaignDoc.createMany({
           data: docs.map((doc) => ({
-            businessId: charity.id,
+            charityId: charity.id,
             url: doc.url,
             docType: doc.docType,
           })),
@@ -241,14 +230,27 @@ export class CampaignService {
         });
       }
 
+      const bankDetail = await this.prisma.bankDetail.create({
+        data: {
+          holderName: dto.holderName,
+          bankName: dto.bankName,
+          accountNumber: dto.accountNumber,
+          campaignId: campaign.id,
+        },
+      });
+
+      if (!bankDetail)
+        throw new InternalServerErrorException('couldnot add bank details.');
+
       const createdCampaign = await this.prisma.campaign.findFirst({
         where: { id: campaign.id },
         include: {
           user: {
-            select: {},
+            select: this.returnableFieldsUser,
           },
           charity: true,
           campaignMedia: true,
+          BankDetail: true,
         },
       });
 
