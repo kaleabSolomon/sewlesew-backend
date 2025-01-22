@@ -4,9 +4,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import {
   CreateBusinessCampaignDto,
   CreateOrganizationalCharityCampaignDto,
+  CreatePersonalCharityCampaignDto,
 } from './dto';
 import { Doc, Image } from 'src/common/types';
-import { Category } from '@prisma/client';
+import { CampaignStatus, Category } from '@prisma/client';
 import { createApiResponse } from 'src/utils';
 
 @Injectable()
@@ -56,6 +57,18 @@ export class CampaignService {
       include: {
         business: true,
         charity: true,
+      },
+    }));
+  }
+
+  async checkPersonalCampaignExists(id: string) {
+    return !!(await this.prisma.campaign.findFirst({
+      where: {
+        userId: id,
+        OR: [
+          { status: CampaignStatus.ACTIVE },
+          { status: CampaignStatus.PENDING },
+        ],
       },
     }));
   }
@@ -191,6 +204,106 @@ export class CampaignService {
       if (!charity)
         throw new InternalServerErrorException(
           'Couldnot register charity. Please try again!',
+        );
+
+      if (docs) {
+        await this.prisma.campaignDoc.createMany({
+          data: docs.map((doc) => ({
+            charityId: charity.id,
+            url: doc.url,
+            docType: doc.docType,
+          })),
+        });
+      }
+
+      const campaign = await this.prisma.campaign.create({
+        data: {
+          userId,
+          charityId: charity.id,
+          title: dto.title,
+          description: dto.deadline,
+          goalAmount: dto.goalAmount,
+          deadline: dto.deadline,
+          category: dto.category as Category,
+        },
+      });
+
+      if (!campaign)
+        throw new InternalServerErrorException(
+          'Couldnot create campaign. Please try again!',
+        );
+
+      if (images) {
+        await this.prisma.campaignMedia.createMany({
+          data: images.map((image) => ({
+            campaignId: campaign.id,
+            url: image.url,
+            imageType: image.imgType,
+          })),
+        });
+      }
+
+      const bankDetail = await this.prisma.bankDetail.create({
+        data: {
+          holderName: dto.holderName,
+          bankName: dto.bankName,
+          accountNumber: dto.accountNumber,
+          campaignId: campaign.id,
+        },
+      });
+
+      if (!bankDetail)
+        throw new InternalServerErrorException('couldnot add bank details.');
+
+      const createdCampaign = await this.prisma.campaign.findFirst({
+        where: { id: campaign.id },
+        include: {
+          user: {
+            select: this.returnableFieldsUser,
+          },
+          charity: true,
+          campaignMedia: true,
+          BankDetail: true,
+        },
+      });
+
+      return createApiResponse({
+        status: 'success',
+        message:
+          'campaign creaed successfully. please wait untill the review process is done',
+        data: createdCampaign,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async createPersonalCharityCampaign(
+    userId: string,
+    dto: CreatePersonalCharityCampaignDto,
+    images: Image[],
+    docs: Doc[],
+  ) {
+    dto.deadline = moment(dto.deadline).toISOString();
+
+    try {
+      const charity = await this.prisma.charity.create({
+        data: {
+          fullName: dto.fullName,
+          isOrganization: dto.isOrganization,
+          publicEmail: dto.publicEmail,
+          publicPhoneNumber: dto.publicPhoneNumber,
+          contactEmail: dto.contactEmail,
+          contactPhone: dto.contactPhoneNumber,
+          region: dto.region,
+          city: dto.city,
+          relativeLocation: dto.relativeLocation,
+        },
+      });
+
+      if (!charity)
+        throw new InternalServerErrorException(
+          'Couldnot register cause. Please try again!',
         );
 
       if (docs) {

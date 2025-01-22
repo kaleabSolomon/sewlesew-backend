@@ -3,6 +3,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   InternalServerErrorException,
   Post,
   UploadedFiles,
@@ -363,9 +364,135 @@ export class CampaignController {
       docs,
     );
   }
+  @Post('charity/personal')
+  @Roles(Role.USER, Role.CALLCENTERAGENT)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: 'personalDocument',
+        maxCount: 1,
+      },
+      {
+        name: 'supportingDocuments',
+        maxCount: 2,
+      },
+      {
+        name: 'coverImage',
+        maxCount: 1,
+      },
+      {
+        name: 'otherImages',
+        maxCount: 4,
+      },
+    ]),
+  )
+  async createPersonalCampaign(
+    @GetCurrentUser('userId') id: string,
+    @UploadedFiles()
+    files: {
+      perosnalDocument?: Express.Multer.File[];
+      supportingDocuments?: Express.Multer.File[];
+      coverImage?: Express.Multer.File[];
+      otherImages?: Express.Multer.File[];
+    },
+    @Body() dto: CreatePersonalCharityCampaignDto,
+  ) {
+    let docs: Doc[] = [];
+    let images: Image[] = [];
 
-  async createPersonalCampaign(dto: CreatePersonalCharityCampaignDto) {}
-  // get campaigns
+    const campaignExists =
+      await this.campaignService.checkPersonalCampaignExists(id);
+    if (campaignExists)
+      throw new ConflictException(
+        'You already have an ongoing campaign. Only One active campaign is allowed per user. ',
+      );
+    if (!files.perosnalDocument || files.perosnalDocument.length === 0) {
+      throw new BadRequestException(
+        'tin certificate is required to proceed with registration',
+      );
+    }
+
+    if (!files.coverImage || files.coverImage.length === 0) {
+      throw new BadRequestException(
+        'cover image is required to proceed with registration',
+      );
+    }
+
+    // Check if deadline is at least 3 days in the future
+    const deadlineDate = moment(dto.deadline);
+    const now = moment();
+    const minDate = now.add(3, 'days');
+
+    if (!deadlineDate.isValid()) {
+      throw new BadRequestException('Deadline must be a valid date.');
+    }
+
+    if (deadlineDate.isBefore(minDate)) {
+      throw new BadRequestException(
+        'Deadline must be at least 3 days in the future.',
+      );
+    }
+
+    const personalDoc = await this.cloudinary.uploadFile(
+      files.perosnalDocument[0],
+    );
+    if (!personalDoc || !personalDoc.url)
+      throw new InternalServerErrorException(
+        'Failed to upload Your Tin Certificate',
+      );
+
+    const coverImage = await this.cloudinary.uploadFile(files.coverImage[0]);
+
+    if (!coverImage || !coverImage.url)
+      throw new InternalServerErrorException(
+        'Failed to upload Registration License',
+      );
+
+    if (files.supportingDocuments && files.supportingDocuments.length > 0) {
+      for (const doc of files.supportingDocuments) {
+        const uploadedDoc = await this.cloudinary.uploadFile(doc);
+        if (!uploadedDoc || !uploadedDoc.url) {
+          throw new InternalServerErrorException(
+            'Failed to upload Supporting Document',
+          );
+        }
+        docs.push({
+          docType: DocType.SUPPORTING_DOCUMENT,
+          url: uploadedDoc.url,
+        });
+      }
+    }
+
+    if (files.otherImages && files.otherImages.length > 0) {
+      for (const img of files.otherImages) {
+        const uploadedImg = await this.cloudinary.uploadFile(img);
+        if (!uploadedImg || !uploadedImg.url) {
+          throw new InternalServerErrorException('Failed to upload image');
+        }
+        images.push({
+          imgType: ImageType.SUPPORTING_IMAGE,
+          url: uploadedImg.url,
+        });
+      }
+    }
+
+    images = [
+      ...images,
+      { imgType: ImageType.COVER_IMAGE, url: coverImage.url },
+    ];
+    docs = [
+      ...docs,
+      { docType: DocType.PERSONAL_DOCUMENT, url: personalDoc.url },
+    ];
+
+    return await this.campaignService.createPersonalCharityCampaign(
+      id,
+      dto,
+      images,
+      docs,
+    );
+  }
+
   // get my campaigns
   // get campaign
   // get campaign images
