@@ -9,8 +9,10 @@ import {
   IsNumber,
   Min,
   MaxLength,
+  IsEnum,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { BankName } from '@prisma/client';
 export class CreateCampaignBaseDto {
   @IsString()
   @IsNotEmpty()
@@ -67,4 +69,15 @@ export class CreateCampaignBaseDto {
   @IsDateString()
   @IsNotEmpty()
   deadline: string;
+
+  @IsString()
+  @IsNotEmpty()
+  holderName: string;
+
+  @IsEnum(BankName, { message: 'Please select one of the listed Banks' })
+  bankName: BankName;
+
+  @IsString()
+  @IsNotEmpty()
+  accountNumber: string;
 }
