@@ -82,10 +82,11 @@ model Campaign {
 
   BankDetail BankDetail? @relation("CampaignBankDetails")
 
-  businessId String?   @unique
-  charityId  String?   @unique
-  business   Business? @relation(fields: [businessId], references: [id])
-  charity    Charity?  @relation(fields: [charityId], references: [id])
+  businessId     String?         @unique
+  charityId      String?         @unique
+  business       Business?       @relation(fields: [businessId], references: [id])
+  charity        Charity?        @relation(fields: [charityId], references: [id])
+  ClosedCampaign ClosedCampaign?
 
   @@index([businessId, charityId])
   @@map("campaigns")
@@ -208,6 +209,16 @@ model Moderation {
   admin     Admin            @relation(fields: [adminId], references: [id])
 
   @@map("mods")
+}
+
+model ClosedCampaign {
+  id          String   @id @default(uuid())
+  campaignId  String   @unique
+  isCompleted Boolean
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
 }
 
 enum CampaignStatus {
