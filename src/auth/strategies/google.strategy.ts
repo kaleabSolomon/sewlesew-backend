@@ -14,7 +14,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       clientID: config.get('SEWLESEW_WEB_CLIENT_ID'),
-      clientSecret: config.get('SEWLESEW_WEB_CLIENT_SECRET'),
+      clientSecret: config.get('SEWLESEW_CLIENT_SECRET'),
       callbackURL: 'http://localhost:3333/api/auth/google/redirect',
       scope: ['profile', 'email'],
       passReqToCallback: true,
