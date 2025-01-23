@@ -384,7 +384,11 @@ export class CampaignService {
   async getCampaigns(
     page: number,
     limit: number,
-    filters: { category?: Category; fullName?: string },
+    filters: {
+      category?: Category;
+      fullName?: string;
+      status?: CampaignStatus;
+    },
   ) {
     try {
       const skip = (page - 1) * limit;
@@ -393,7 +397,7 @@ export class CampaignService {
       const campaigns = await this.prisma.campaign.findMany({
         where: {
           category: filters.category,
-          status: { not: CampaignStatus.PENDING },
+          status: filters.status,
           OR: [
             {
               business: {
@@ -628,6 +632,30 @@ export class CampaignService {
       throw new InternalServerErrorException(
         'something went wrong. couldnt change campaign status.',
       );
+    }
+  }
+
+  async deleteCampaign(campaignId: string, userId: string) {
+    try {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: { id: campaignId, userId },
+      });
+
+      if (!campaign) throw new NotFoundException('couldnt find campaign');
+      await this.prisma.campaign.update({
+        where: { id: campaignId },
+        data: {
+          status: CampaignStatus.DELETED,
+        },
+      });
+
+      return createApiResponse({
+        status: 'success',
+        message: 'deleted campaign successfully.',
+      });
+    } catch (err) {
+      console.log(err);
+      throw new InternalServerErrorException('couldnt delete campaign.');
     }
   }
 }

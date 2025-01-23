@@ -3,6 +3,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   Get,
   InternalServerErrorException,
   Param,
@@ -507,7 +508,10 @@ export class CampaignController {
     page = Math.max(1, Number(page) || 1);
     limit = Math.max(1, Number(limit) || 10);
 
-    const filters: { category?: Category; fullName?: string } = {};
+    const filters: {
+      category?: Category;
+      fullName?: string;
+    } = {};
 
     if (category && !Object.values(Category).includes(category as Category)) {
       throw new BadRequestException(`Invalid category: ${category}`);
@@ -518,6 +522,44 @@ export class CampaignController {
     return await this.campaignService.getCampaigns(page, limit, filters);
   }
 
+  @Get('/admin')
+  @Roles(Role.CAMPAIGNREVIEWER)
+  async getCampaingsAdmin(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @GetCurrentUser('role') role: Role,
+    @Query('category') category?: string,
+    @Query('for') fullName?: string,
+    @Query('status') status?: string,
+  ) {
+    page = Math.max(1, Number(page) || 1);
+    limit = Math.max(1, Number(limit) || 10);
+
+    const filters: {
+      category?: Category;
+      fullName?: string;
+      status?: CampaignStatus;
+    } = {};
+
+    if (
+      status &&
+      role &&
+      role === Role.CAMPAIGNREVIEWER &&
+      Object.values(CampaignStatus).includes(status as CampaignStatus)
+    ) {
+      filters.status = status as CampaignStatus;
+    } else {
+      filters.status = CampaignStatus.ACTIVE;
+    }
+
+    if (category && !Object.values(Category).includes(category as Category)) {
+      throw new BadRequestException(`Invalid category: ${category}`);
+    }
+
+    filters.category = category as Category;
+    if (fullName) filters.fullName = fullName;
+    return await this.campaignService.getCampaigns(page, limit, filters);
+  }
   // get my campaigns
 
   @Get('me')
@@ -552,5 +594,14 @@ export class CampaignController {
   }
 
   // delete campaign
+
+  @Delete(':id')
+  @Roles(Role.USER)
+  async deleteCampaign(
+    @Param('id') campaignId: string,
+    @GetCurrentUser('userId') userId: string,
+  ) {
+    return await this.campaignService.deleteCampaign(campaignId, userId);
+  }
   // close campaign
 }
