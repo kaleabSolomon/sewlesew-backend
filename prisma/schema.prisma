@@ -224,7 +224,7 @@ model ClosedCampaign {
 enum CampaignStatus {
   PENDING
   ACTIVE
-  COMPLETED
+  CLOSED
   REJECTED
   DELETED
   REMOVED
