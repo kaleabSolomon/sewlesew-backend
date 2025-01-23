@@ -76,20 +76,20 @@ export class AuthController {
     res.send(tokens);
     res.redirect('http://localhost:5174/');
   }
-  // @NoAuth()
-  // @UseGuards(GoogleAuthGuard)
-  // @Get('/google/android/login')
-  // signinGoogleAndroid() {
-  //   return { msg: 'authenticating' };
-  // }
-  // @NoAuth()
-  // @UseGuards(GoogleAuthGuard)
-  // @Get('/google/android/redirect')
-  // async handleRedirectAndroid(@Req() req: Request, @Res() res: Response) {
-  //   const tokens = req.user;
+  @NoAuth()
+  @UseGuards(GoogleAuthGuard)
+  @Get('/google/android/login')
+  signinGoogleAndroid() {
+    return { msg: 'authenticating' };
+  }
+  @NoAuth()
+  @UseGuards(GoogleAuthGuard)
+  @Get('/google/android/redirect')
+  async handleRedirectAndroid(@Req() req: Request, @Res() res: Response) {
+    const tokens = req.user;
 
-  //   res.json(tokens);
-  // }
+    res.json(tokens);
+  }
 
   @HttpCode(HttpStatus.OK)
   @Post('/verify-account')
