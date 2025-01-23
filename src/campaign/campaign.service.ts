@@ -517,4 +517,57 @@ export class CampaignService {
       );
     }
   }
+  async getCampaign(id: string) {
+    try {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: { id },
+        include: {
+          business: {
+            select: {
+              id: true,
+              fullName: true,
+              website: true,
+              sector: true,
+              publicEmail: true,
+              publicPhoneNumber: true,
+              region: true,
+              city: true,
+              relativeLocation: true,
+              createdAt: true,
+            },
+          },
+          charity: {
+            select: {
+              id: true,
+              fullName: true,
+              isOrganization: true,
+              website: true,
+              publicEmail: true,
+              publicPhoneNumber: true,
+              region: true,
+              city: true,
+              relativeLocation: true,
+              createdAt: true,
+            },
+          },
+          campaignMedia: true,
+        },
+      });
+
+      if (!campaign)
+        throw new InternalServerErrorException('unable to get campaign.');
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched campaign successfully.',
+        data: campaign,
+      });
+    } catch (err) {
+      console.log(err);
+
+      throw new InternalServerErrorException(
+        'An unexpected error occurred. Please try again later.',
+      );
+    }
+  }
 }

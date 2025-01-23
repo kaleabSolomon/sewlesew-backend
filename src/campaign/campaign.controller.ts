@@ -5,13 +5,14 @@ import {
   Controller,
   Get,
   InternalServerErrorException,
+  Param,
   Post,
   Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { CampaignService } from './campaign.service';
-import { GetCurrentUser, Roles } from 'src/common/decorators';
+import { GetCurrentUser, NoAuth, Roles } from 'src/common/decorators';
 import { Role } from 'src/common/enums';
 import {
   CreateBusinessCampaignDto,
@@ -495,6 +496,7 @@ export class CampaignController {
   }
 
   @Get('')
+  @NoAuth()
   async getCampaings(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -524,6 +526,11 @@ export class CampaignController {
   }
 
   // get campaign
+  @Get(':id')
+  @NoAuth()
+  async getCampaign(@Param('id') id: string) {
+    return await this.campaignService.getCampaign(id);
+  }
   // get campaign images
   // get images legaldocs
   // changeCampaignStatus
