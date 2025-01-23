@@ -12,11 +12,14 @@ import { ModerationModule } from './moderation/moderation.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { CampaignModule } from './campaign/campaign.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CampaignSchedulerService } from './scheduler/campaignScheduler.service';
 
 @Module({
   imports: [
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     AuthModule,
     EmailModule,
     UserModule,
@@ -36,6 +39,8 @@ import { CampaignModule } from './campaign/campaign.module';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+
+    CampaignSchedulerService,
   ],
 })
 export class AppModule {}
