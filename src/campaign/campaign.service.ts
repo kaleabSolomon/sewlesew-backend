@@ -9,7 +9,6 @@ import {
 import { Doc, Image } from 'src/common/types';
 import { CampaignStatus, Category, ImageType } from '@prisma/client';
 import { createApiResponse } from 'src/utils';
-import { filter } from 'rxjs';
 
 @Injectable()
 export class CampaignService {
@@ -473,6 +472,49 @@ export class CampaignService {
       });
     } catch (err) {
       console.log(err);
+    }
+  }
+  async getMyCampaigns(id: string) {
+    try {
+      const campaigns = await this.prisma.campaign.findMany({
+        where: { userId: id },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+
+          goalAmount: true,
+          raisedAmount: true,
+          category: true,
+          deadline: true,
+          status: true,
+
+          campaignMedia: {
+            where: {
+              imageType: ImageType.COVER_IMAGE,
+            },
+            select: {
+              id: true,
+              url: true,
+            },
+          },
+        },
+      });
+
+      if (!campaigns)
+        throw new InternalServerErrorException('unable to get campaigns.');
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched campaigns successfully.',
+        data: campaigns,
+      });
+    } catch (err) {
+      console.log(err);
+
+      throw new InternalServerErrorException(
+        'An unexpected error occurred. Please try again later.',
+      );
     }
   }
 }

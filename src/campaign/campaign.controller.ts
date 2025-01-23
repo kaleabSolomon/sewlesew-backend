@@ -516,9 +516,13 @@ export class CampaignController {
   }
 
   // get my campaigns
-  // @Get('me')
-  // @Roles(Role.USER)
-  // async getMyCampaigns() {}
+
+  @Get('me')
+  @Roles(Role.USER)
+  async getMyCampaigns(@GetCurrentUser('userId') id: string) {
+    return await this.campaignService.getMyCampaigns(id);
+  }
+
   // get campaign
   // get campaign images
   // get images legaldocs
