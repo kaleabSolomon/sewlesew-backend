@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,7 +21,7 @@ import {
 
 import * as moment from 'moment';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { DocType, ImageType } from '@prisma/client';
+import { Category, DocType, ImageType } from '@prisma/client';
 import { Doc, Image } from 'src/common/types';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
@@ -493,7 +494,31 @@ export class CampaignController {
     );
   }
 
+  @Get('')
+  async getCampaings(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('category') category?: string,
+    @Query('for') fullName?: string,
+  ) {
+    page = Math.max(1, Number(page) || 1);
+    limit = Math.max(1, Number(limit) || 10);
+
+    const filters: { category?: Category; fullName?: string } = {};
+
+    if (category && !Object.values(Category).includes(category as Category)) {
+      throw new BadRequestException(`Invalid category: ${category}`);
+    }
+
+    filters.category = category as Category;
+    if (fullName) filters.fullName = fullName;
+    return await this.campaignService.getCampaigns(page, limit, filters);
+  }
+
   // get my campaigns
+  // @Get('me')
+  // @Roles(Role.USER)
+  // async getMyCampaigns() {}
   // get campaign
   // get campaign images
   // get images legaldocs

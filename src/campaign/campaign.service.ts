@@ -7,8 +7,9 @@ import {
   CreatePersonalCharityCampaignDto,
 } from './dto';
 import { Doc, Image } from 'src/common/types';
-import { CampaignStatus, Category } from '@prisma/client';
+import { CampaignStatus, Category, ImageType } from '@prisma/client';
 import { createApiResponse } from 'src/utils';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class CampaignService {
@@ -372,6 +373,103 @@ export class CampaignService {
         message:
           'campaign creaed successfully. please wait untill the review process is done',
         data: createdCampaign,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  async getCampaigns(
+    page: number,
+    limit: number,
+    filters: { category?: Category; fullName?: string },
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      const campaigns = await this.prisma.campaign.findMany({
+        where: {
+          category: filters.category,
+          status: { not: CampaignStatus.PENDING },
+          OR: [
+            {
+              business: {
+                fullName: {
+                  contains: filters.fullName,
+                  // search: filters.fullName,
+                },
+              },
+            },
+            {
+              charity: {
+                fullName: {
+                  contains: filters.fullName,
+                },
+              },
+            },
+          ],
+        },
+        skip,
+        take,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+
+          goalAmount: true,
+          raisedAmount: true,
+          category: true,
+          deadline: true,
+          status: true,
+
+          campaignMedia: {
+            where: {
+              imageType: ImageType.COVER_IMAGE,
+            },
+            select: {
+              id: true,
+              url: true,
+            },
+          },
+        },
+      });
+
+      if (!campaigns)
+        throw new InternalServerErrorException('Unable to get Campaigns. ');
+      const totalItems = await this.prisma.campaign.count({
+        where: {
+          category: filters.category,
+          status: { not: CampaignStatus.PENDING },
+          OR: [
+            {
+              business: {
+                fullName: {
+                  contains: filters.fullName,
+                  // search: filters.fullName,
+                },
+              },
+            },
+            {
+              charity: {
+                fullName: {
+                  contains: filters.fullName,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched campaigns successfully',
+        data: campaigns,
+        metadata: {
+          totalItems,
+          totalPages: Math.ceil(totalItems / limit),
+          pageSize: limit,
+          currentPage: page,
+        },
       });
     } catch (err) {
       console.log(err);
