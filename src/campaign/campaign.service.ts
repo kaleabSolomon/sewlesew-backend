@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import * as moment from 'moment';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -567,6 +571,62 @@ export class CampaignService {
 
       throw new InternalServerErrorException(
         'An unexpected error occurred. Please try again later.',
+      );
+    }
+  }
+
+  async changeCampaignStatus(id: string, status: CampaignStatus) {
+    try {
+      const campaign = await this.prisma.campaign.findFirst({ where: { id } });
+      if (!campaign) throw new NotFoundException('couldnt find campaign');
+
+      const updatedCampaign = await this.prisma.campaign.update({
+        where: { id },
+        data: {
+          status,
+        },
+        include: {
+          business: {
+            select: {
+              id: true,
+              fullName: true,
+              website: true,
+              sector: true,
+              publicEmail: true,
+              publicPhoneNumber: true,
+              region: true,
+              city: true,
+              relativeLocation: true,
+              createdAt: true,
+            },
+          },
+          charity: {
+            select: {
+              id: true,
+              fullName: true,
+              isOrganization: true,
+              website: true,
+              publicEmail: true,
+              publicPhoneNumber: true,
+              region: true,
+              city: true,
+              relativeLocation: true,
+              createdAt: true,
+            },
+          },
+          campaignMedia: true,
+        },
+      });
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Updated Campaign status.',
+        data: updatedCampaign,
+      });
+    } catch (err) {
+      console.log(err);
+      throw new InternalServerErrorException(
+        'something went wrong. couldnt change campaign status.',
       );
     }
   }

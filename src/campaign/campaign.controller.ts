@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Param,
+  Patch,
   Post,
   Query,
   UploadedFiles,
@@ -22,7 +23,7 @@ import {
 
 import * as moment from 'moment';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { Category, DocType, ImageType } from '@prisma/client';
+import { CampaignStatus, Category, DocType, ImageType } from '@prisma/client';
 import { Doc, Image } from 'src/common/types';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
@@ -531,9 +532,25 @@ export class CampaignController {
   async getCampaign(@Param('id') id: string) {
     return await this.campaignService.getCampaign(id);
   }
-  // get campaign images
-  // get images legaldocs
+  // get campaing docs and images
+
   // changeCampaignStatus
+  @Patch(':id/status')
+  @Roles(Role.CAMPAIGNREVIEWER)
+  async changeCampaignStatus(
+    @Param('id') campaignId: string,
+    @Body('status') status: string,
+  ) {
+    if (!Object.values(CampaignStatus).includes(status as CampaignStatus)) {
+      throw new BadRequestException(`Invalid status: ${status}`);
+    }
+
+    return await this.campaignService.changeCampaignStatus(
+      campaignId,
+      status as CampaignStatus,
+    );
+  }
+
   // delete campaign
   // close campaign
 }
