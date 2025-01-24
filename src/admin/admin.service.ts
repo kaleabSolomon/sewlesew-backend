@@ -1,8 +1,8 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import crypto from 'crypto';
 import * as moment from 'moment';
@@ -37,7 +37,7 @@ export class AdminService {
         where: { email: dto.email },
       }));
       if (adminExists)
-        throw new UnauthorizedException(
+        throw new ConflictException(
           'An Account is already registered with the given email.',
         );
 

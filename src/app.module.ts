@@ -16,6 +16,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CampaignSchedulerService } from './scheduler/campaignScheduler.service';
 import { CampaignSchedulerModule } from './scheduler/campaignScheduler.module';
 import { ChapaModule } from 'chapa-nestjs';
+import { DonationModule } from './donation/donation.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ChapaModule } from 'chapa-nestjs';
         secretKey: configService.get('CHAPA_TEST_SECRET_KEY'),
       }),
     }),
+    DonationModule,
   ],
   controllers: [],
   providers: [
@@ -49,7 +51,6 @@ import { ChapaModule } from 'chapa-nestjs';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
-
     CampaignSchedulerService,
   ],
 })
