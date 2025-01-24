@@ -11,6 +11,7 @@ import { CreateDonationDto } from './dto';
 import { CampaignStatus, PaymentStatus } from '@prisma/client';
 import { createApiResponse } from 'src/utils';
 import { ConfigService } from '@nestjs/config';
+import { Medium } from 'src/common/enums';
 
 @Injectable()
 export class DonationService {
@@ -19,7 +20,12 @@ export class DonationService {
     private chapa: ChapaService,
     private config: ConfigService,
   ) {}
-  async donate(dto: CreateDonationDto, campaignId: string, userId?: string) {
+  async donate(
+    dto: CreateDonationDto,
+    campaignId: string,
+    medium: Medium,
+    userId?: string,
+  ) {
     try {
       const campaign = await this.prisma.campaign.findFirst({
         where: { id: campaignId, status: CampaignStatus.ACTIVE },
@@ -44,21 +50,40 @@ export class DonationService {
       if (!donation)
         throw new InternalServerErrorException('Couldnt create donation');
 
-      const response = await this.chapa.initialize({
-        first_name: dto.donorFirstName,
-        last_name: dto.donorLastName,
-        email: dto.email,
-        currency: 'ETB',
-        amount: dto.amount,
-        tx_ref: txRef,
-        callback_url:
-          'https://webhook.site/1aa8bca0-b2a2-455a-8a12-10c9fc5f78b7',
-        return_url: 'https://github.com/Chapa-Et/chapa-nestjs',
-        customization: {
-          title: 'donation',
-          description: 'Test Description',
-        },
-      });
+      let response: any;
+      if (medium == Medium.MOBILE) {
+        response = await this.chapa.mobileInitialize({
+          first_name: dto.donorFirstName,
+          last_name: dto.donorLastName,
+          email: dto.email,
+          currency: 'ETB',
+          amount: dto.amount,
+          tx_ref: txRef,
+          callback_url:
+            'https://webhook.site/1aa8bca0-b2a2-455a-8a12-10c9fc5f78b7',
+          return_url: 'https://github.com/Chapa-Et/chapa-nestjs',
+          customization: {
+            title: 'donation',
+            description: 'Test Description',
+          },
+        });
+      } else {
+        response = await this.chapa.initialize({
+          first_name: dto.donorFirstName,
+          last_name: dto.donorLastName,
+          email: dto.email,
+          currency: 'ETB',
+          amount: dto.amount,
+          tx_ref: txRef,
+          callback_url:
+            'https://webhook.site/1aa8bca0-b2a2-455a-8a12-10c9fc5f78b7',
+          return_url: 'https://github.com/Chapa-Et/chapa-nestjs',
+          customization: {
+            title: 'donation',
+            description: 'Test Description',
+          },
+        });
+      }
 
       if (!response)
         throw new HttpException(

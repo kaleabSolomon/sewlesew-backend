@@ -50,3 +50,8 @@ export enum PersonalCharityCategoreis {
   CHILDCARE = 'CHILDCARE',
   EDUCATION = 'EDUCATION',
 }
+
+export enum Medium {
+  MOBILE = 'MOBILE',
+  Web = 'WEB',
+}

@@ -1,8 +1,9 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { DonationService } from './donation.service';
 import { GetCurrentUser, NoAuth } from 'src/common/decorators';
 import { CreateDonationDto } from './dto';
 import { ConfigService } from '@nestjs/config';
+import { Medium } from 'src/common/enums';
 
 @Controller('donation')
 export class DonationController {
@@ -48,7 +49,21 @@ export class DonationController {
     @Body() dto: CreateDonationDto,
     @Param('id') campaignId: string,
     @GetCurrentUser('userId') userId: string,
+    @Query('medium') medium?: Medium,
   ) {
-    return await this.donationService.donate(dto, campaignId, userId);
+    if (!medium) medium = Medium.Web;
+    return await this.donationService.donate(dto, campaignId, medium, userId);
+  }
+
+  @Post('guest/:id')
+  @NoAuth()
+  async donateGuest(
+    @Body() dto: CreateDonationDto,
+    @Param('id') campaignId: string,
+    @Query('medium') medium?: Medium,
+  ) {
+    if (!medium) medium = Medium.Web;
+
+    return await this.donationService.donate(dto, campaignId, medium);
   }
 }
