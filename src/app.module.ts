@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -15,6 +15,7 @@ import { CampaignModule } from './campaign/campaign.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CampaignSchedulerService } from './scheduler/campaignScheduler.service';
 import { CampaignSchedulerModule } from './scheduler/campaignScheduler.module';
+import { ChapaModule } from 'chapa-nestjs';
 
 @Module({
   imports: [
@@ -30,6 +31,13 @@ import { CampaignSchedulerModule } from './scheduler/campaignScheduler.module';
     CloudinaryModule,
     CampaignModule,
     CampaignSchedulerModule,
+    ChapaModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secretKey: configService.get('CHAPA_TEST_SECRET_KEY'),
+      }),
+    }),
   ],
   controllers: [],
   providers: [
