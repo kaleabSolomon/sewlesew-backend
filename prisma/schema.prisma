@@ -34,6 +34,7 @@ model User {
   role                      String         @default("USER")
   authProviders             AuthProvider[]
   campaigns                 Campaign[]
+  Donation                  Donation[]
 
   @@map("users")
 }
@@ -87,6 +88,7 @@ model Campaign {
   business       Business?       @relation(fields: [businessId], references: [id])
   charity        Charity?        @relation(fields: [charityId], references: [id])
   ClosedCampaign ClosedCampaign?
+  Donation       Donation[]
 
   @@index([businessId, charityId])
   @@map("campaigns")
@@ -221,6 +223,22 @@ model ClosedCampaign {
   campaign Campaign @relation(fields: [campaignId], references: [id])
 }
 
+model Donation {
+  id             String        @id @default(uuid())
+  campaignId     String
+  campaign       Campaign      @relation(fields: [campaignId], references: [id])
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+  amount         Decimal
+  txRef          String        @unique
+  paymentStatus  PaymentStatus @default(PENDING)
+  donorFirstName String?
+  donorLastName  String?
+  email          String?
+  isAnonymous    Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+}
+
 enum CampaignStatus {
   PENDING
   ACTIVE
@@ -307,4 +325,9 @@ enum BankName {
   COMMERCIAL_BANK_OF_ETHIOPIA
   ABYSSINIA_BANK
   ZEMEN_BANK
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
 }
