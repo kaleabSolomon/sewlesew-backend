@@ -14,6 +14,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { CampaignModule } from './campaign/campaign.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CampaignSchedulerService } from './scheduler/campaignScheduler.service';
+import { CampaignSchedulerModule } from './scheduler/campaignScheduler.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CampaignSchedulerService } from './scheduler/campaignScheduler.service'
     ModerationModule,
     CloudinaryModule,
     CampaignModule,
+    CampaignSchedulerModule,
   ],
   controllers: [],
   providers: [
