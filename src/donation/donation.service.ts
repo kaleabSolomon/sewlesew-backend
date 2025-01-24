@@ -128,4 +128,40 @@ export class DonationService {
       return campaign;
     }
   }
+
+  async getDonationsByCampaign(campaignId: string) {
+    try {
+      const donations = await this.prisma.donation.findMany({
+        where: { campaignId, paymentStatus: PaymentStatus.VERIFIED },
+      });
+
+      if (!donations)
+        throw new InternalServerErrorException('couldnot get donations');
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched donations successfully',
+        data: donations,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async getDonationsByUser(userId: string) {
+    try {
+      const donations = await this.prisma.donation.findMany({
+        where: { userId, paymentStatus: PaymentStatus.VERIFIED },
+      });
+
+      if (!donations)
+        throw new InternalServerErrorException('couldnot get donations');
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched donations successfully',
+        data: donations,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
 }

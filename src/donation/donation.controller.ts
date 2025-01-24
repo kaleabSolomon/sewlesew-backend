@@ -66,4 +66,13 @@ export class DonationController {
 
     return await this.donationService.donate(dto, campaignId, medium);
   }
+  @Get('me')
+  async getDonationsByUser(@GetCurrentUser('userId') userId: string) {
+    return await this.donationService.getDonationsByUser(userId);
+  }
+  @Get(':campaignId')
+  @NoAuth()
+  async getDonationsByCampaign(@Param('campaignId') campaignId: string) {
+    return await this.donationService.getDonationsByCampaign(campaignId);
+  }
 }
