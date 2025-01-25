@@ -11,7 +11,12 @@ import {
   CreatePersonalCharityCampaignDto,
 } from './dto';
 import { Doc, Image } from 'src/common/types';
-import { CampaignStatus, Category, ImageType } from '@prisma/client';
+import {
+  CampaignStatus,
+  Category,
+  ImageType,
+  PaymentStatus,
+} from '@prisma/client';
 import { createApiResponse } from 'src/utils';
 
 @Injectable()
@@ -443,7 +448,11 @@ export class CampaignService {
           },
           _count: {
             select: {
-              Donation: true,
+              Donation: {
+                where: {
+                  paymentStatus: PaymentStatus.VERIFIED,
+                },
+              },
             },
           },
         },
