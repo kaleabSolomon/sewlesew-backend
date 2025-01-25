@@ -420,6 +420,7 @@ export class CampaignService {
         },
         skip,
         take,
+
         select: {
           id: true,
           title: true,
@@ -438,6 +439,11 @@ export class CampaignService {
             select: {
               id: true,
               url: true,
+            },
+          },
+          _count: {
+            select: {
+              Donation: true,
             },
           },
         },
