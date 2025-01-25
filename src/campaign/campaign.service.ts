@@ -394,6 +394,8 @@ export class CampaignService {
       const skip = (page - 1) * limit;
       const take = limit;
 
+      if (!filters.status) filters.status = CampaignStatus.ACTIVE;
+
       const campaigns = await this.prisma.campaign.findMany({
         where: {
           category: filters.category,
