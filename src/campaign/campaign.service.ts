@@ -330,7 +330,7 @@ export class CampaignService {
           userId,
           charityId: charity.id,
           title: dto.title,
-          description: dto.deadline,
+          description: dto.description,
           goalAmount: dto.goalAmount,
           deadline: dto.deadline,
           category: dto.category as Category,
