@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -56,7 +57,7 @@ export class AuthService {
       });
 
       if (user)
-        throw new UnauthorizedException(
+        throw new ConflictException(
           'An Account is already registered with the given email. please Log in or register using a different email',
         );
       // format date
@@ -64,7 +65,7 @@ export class AuthService {
 
       const age = moment().diff(dto.dateOfBirth, 'years');
 
-      if (age < 13 && age > 100)
+      if (age < 13 || age > 100)
         throw new BadRequestException(
           'You must be between the age of 13 and 100 years old',
         );
@@ -116,6 +117,7 @@ export class AuthService {
       return tokens;
     } catch (err) {
       console.log(err);
+      throw new InternalServerErrorException(err.message);
     }
   }
   async localSignin(dto: SignInDto) {
