@@ -466,6 +466,8 @@ export class AuthService {
   async resendVerificationCode(dto: VerificationCodeResendDto) {
     const verificationCode = this.generateVerificationCode();
 
+    console.log(verificationCode);
+
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [

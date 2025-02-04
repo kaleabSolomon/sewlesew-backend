@@ -430,12 +430,18 @@ export class CampaignService {
           id: true,
           title: true,
           description: true,
-
+          businessId: true,
+          charityId: true,
           goalAmount: true,
           raisedAmount: true,
           category: true,
           deadline: true,
           status: true,
+          charity: {
+            select: {
+              isOrganization: true,
+            },
+          },
 
           campaignMedia: {
             where: {
