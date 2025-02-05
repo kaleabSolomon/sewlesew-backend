@@ -59,8 +59,7 @@ export class DonationService {
           currency: 'ETB',
           amount: dto.amount,
           tx_ref: txRef,
-          callback_url:
-            'https://webhook.site/1aa8bca0-b2a2-455a-8a12-10c9fc5f78b7',
+          callback_url: 'http://localhost:3333/api/donation/verify',
           return_url: 'https://github.com/Chapa-Et/chapa-nestjs',
           customization: {
             title: 'donation',
