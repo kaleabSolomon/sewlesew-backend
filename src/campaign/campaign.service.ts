@@ -582,6 +582,20 @@ export class CampaignService {
             },
           },
           campaignMedia: true,
+          Donation: {
+            where: {
+              paymentStatus: PaymentStatus.VERIFIED,
+            },
+            select: {
+              id: true,
+              amount: true,
+              paymentStatus: true,
+              createdAt: true,
+              donorFirstName: true,
+              donorLastName: true,
+              isAnonymous: true,
+            },
+          },
         },
       });
 
