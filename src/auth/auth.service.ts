@@ -430,7 +430,7 @@ export class AuthService {
       },
     });
 
-    console.log(user);
+    console.log('verified user' + user);
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -603,7 +603,6 @@ export class AuthService {
       },
     });
 
-    console.log(user);
     if (!user) {
       throw new UnauthorizedException(
         'Invalid or expired password reset token.',

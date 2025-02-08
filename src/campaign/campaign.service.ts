@@ -552,7 +552,16 @@ export class CampaignService {
     try {
       const campaign = await this.prisma.campaign.findFirst({
         where: { id },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          goalAmount: true,
+          raisedAmount: true,
+          category: true,
+          deadline: true,
+          status: true,
+          createdAt: true,
           business: {
             select: {
               id: true,
@@ -579,6 +588,14 @@ export class CampaignService {
               city: true,
               relativeLocation: true,
               createdAt: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePicture: true,
             },
           },
           campaignMedia: true,

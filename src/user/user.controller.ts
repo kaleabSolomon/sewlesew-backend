@@ -39,14 +39,15 @@ export class UserController {
     return await this.userService.getAllUsers(page, limit);
   }
 
-  @Get(':id')
-  @Roles(Role.SUPERADMIN)
-  async getUser(@Param('id') id: string) {
-    return await this.userService.getUser(id);
-  }
   @Get('/me')
   @Roles(Role.USER)
   async getOwnUserData(@GetCurrentUser('id') id: string) {
+    console.log('user data' + id);
+    return await this.userService.getUser(id);
+  }
+  @Get(':id')
+  @Roles(Role.SUPERADMIN)
+  async getUser(@Param('id') id: string) {
     return await this.userService.getUser(id);
   }
 

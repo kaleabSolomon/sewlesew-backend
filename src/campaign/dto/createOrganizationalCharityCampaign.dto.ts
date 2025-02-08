@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsEnum, IsBoolean } from 'class-validator';
-import { CharityCategories } from 'src/common/enums';
 import { CreateCampaignBaseDto } from './createCampaignBase.dto';
+import { Category } from '@prisma/client';
 
 export class CreateOrganizationalCharityCampaignDto extends CreateCampaignBaseDto {
   @IsBoolean()
@@ -18,9 +18,9 @@ export class CreateOrganizationalCharityCampaignDto extends CreateCampaignBaseDt
   @IsNotEmpty()
   licenseNumber: string;
 
-  @IsEnum(CharityCategories, {
+  @IsEnum(Category, {
     message: 'Invalid category. Please select one of the listed categories.',
   })
   @IsNotEmpty()
-  category: CharityCategories;
+  category: Category;
 }

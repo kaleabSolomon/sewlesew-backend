@@ -394,7 +394,7 @@ export class CampaignController {
     @GetCurrentUser('userId') id: string,
     @UploadedFiles()
     files: {
-      perosnalDocument?: Express.Multer.File[];
+      personalDocument?: Express.Multer.File[];
       supportingDocuments?: Express.Multer.File[];
       coverImage?: Express.Multer.File[];
       otherImages?: Express.Multer.File[];
@@ -404,15 +404,17 @@ export class CampaignController {
     let docs: Doc[] = [];
     let images: Image[] = [];
 
+    console.log(files);
+
     const campaignExists =
       await this.campaignService.checkPersonalCampaignExists(id);
     if (campaignExists)
       throw new ConflictException(
         'You already have an ongoing campaign. Only One active campaign is allowed per user. ',
       );
-    if (!files.perosnalDocument || files.perosnalDocument.length === 0) {
+    if (!files.personalDocument || files.personalDocument.length === 0) {
       throw new BadRequestException(
-        'tin certificate is required to proceed with registration',
+        'Personal document is required to proceed with registration',
       );
     }
 
@@ -438,7 +440,7 @@ export class CampaignController {
     }
 
     const personalDoc = await this.cloudinary.uploadFile(
-      files.perosnalDocument[0],
+      files.personalDocument[0],
     );
     if (!personalDoc || !personalDoc.url)
       throw new InternalServerErrorException(

@@ -1,7 +1,6 @@
-import { BusinessSector } from '@prisma/client';
+import { BusinessSector, Category } from '@prisma/client';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { CreateCampaignBaseDto } from './createCampaignBase.dto';
-import { BusinessCategories } from 'src/common/enums';
 
 export class CreateBusinessCampaignDto extends CreateCampaignBaseDto {
   @IsString()
@@ -21,9 +20,9 @@ export class CreateBusinessCampaignDto extends CreateCampaignBaseDto {
   @IsNotEmpty()
   licenseNumber: string;
 
-  @IsEnum(BusinessCategories, {
+  @IsEnum(Category, {
     message: 'Invalid category. Please select one of the listed categories.',
   })
   @IsNotEmpty()
-  category: BusinessCategories;
+  category: Category;
 }
