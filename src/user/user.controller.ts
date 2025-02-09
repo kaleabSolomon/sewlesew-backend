@@ -41,9 +41,9 @@ export class UserController {
 
   @Get('/me')
   @Roles(Role.USER)
-  async getOwnUserData(@GetCurrentUser('id') id: string) {
-    console.log('user data' + id);
-    return await this.userService.getUser(id);
+  async getOwnUserData(@GetCurrentUser('userId') userId: string) {
+    console.log('user data' + userId);
+    return await this.userService.getUser(userId);
   }
   @Get(':id')
   @Roles(Role.SUPERADMIN)
@@ -91,7 +91,7 @@ export class UserController {
   @Patch('/password')
   @Roles(Role.USER)
   async changeUserPassword(
-    @GetCurrentUser('id') id: string,
+    @GetCurrentUser('userId') id: string,
     dto: ChangePasswordDto,
   ) {
     return await this.authService.changeUserPassword(id, dto);
@@ -101,7 +101,7 @@ export class UserController {
 
   @Roles(Role.USER)
   @Delete('')
-  async deleteAccount(@GetCurrentUser('id') id: string) {
+  async deleteAccount(@GetCurrentUser('userId') id: string) {
     return await this.userService.deleteAccount(id);
   }
 

@@ -140,7 +140,9 @@ async function main() {
       title: 'Save Our Startup',
       description: 'We are raising funds to expand our services.',
       goalAmount: 50000,
-      deadline: new Date().toISOString(),
+      deadline: new Date(
+        new Date().getTime() + 10 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       category: Category.EDUCATION_SUPPORT,
     },
   });
@@ -219,9 +221,12 @@ async function main() {
       userId: user1.id,
       businessId: business2.id,
       title: 'Save Our Startup',
-      description: 'We are raising funds to expand our services.',
+      description:
+        'We are raising funds to expand our services. We are raising funds to expand our services. We are raising funds to expand our services.',
       goalAmount: 50000,
-      deadline: new Date().toISOString(),
+      deadline: new Date(
+        new Date().getTime() + 10 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       category: Category.EDUCATION_SUPPORT,
     },
   });
@@ -300,9 +305,12 @@ async function main() {
       userId: user1.id,
       businessId: business3.id,
       title: 'Save Our Startup',
-      description: 'We are raising funds to expand our services.',
+      description:
+        'We are raising funds to expand our services. We are raising funds to expand our services. We are raising funds to expand our services. We are raising funds to expand our services.',
       goalAmount: 50000,
-      deadline: new Date().toISOString(),
+      deadline: new Date(
+        new Date().getTime() + 10 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       category: Category.EDUCATION_SUPPORT,
     },
   });
@@ -381,9 +389,12 @@ async function main() {
       userId: user1.id,
       businessId: business4.id,
       title: 'Save Our Startup',
-      description: 'We are raising funds to expand our services.',
+      description:
+        'We are raising funds to expand our services. We are raising funds to expand our services. ',
       goalAmount: 50000,
-      deadline: new Date().toISOString(),
+      deadline: new Date(
+        new Date().getTime() + 10 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
       category: Category.EDUCATION_SUPPORT,
     },
   });
