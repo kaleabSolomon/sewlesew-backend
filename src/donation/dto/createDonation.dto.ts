@@ -19,5 +19,5 @@ export class CreateDonationDto {
 
   @IsBoolean()
   @IsNotEmpty()
-  isAnonymus: boolean;
+  isAnonymous: boolean;
 }

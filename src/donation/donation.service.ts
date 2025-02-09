@@ -44,7 +44,7 @@ export class DonationService {
           donorFirstName: dto.donorFirstName,
           donorLastName: dto.donorLastName,
           email: dto.email,
-          isAnonymous: dto.isAnonymus,
+          isAnonymous: dto.isAnonymous,
         },
       });
       if (!donation)
@@ -59,8 +59,9 @@ export class DonationService {
           currency: 'ETB',
           amount: dto.amount,
           tx_ref: txRef,
-          callback_url: 'http://localhost:3333/api/donation/verify',
-          return_url: 'https://github.com/Chapa-Et/chapa-nestjs',
+          callback_url: `${this.config.get('CALLBACK_URL')}donation/verify`,
+          return_url: 'http://localhost/',
+          // return_url: `${this.config.get('RETURN_URL')}campaign/${campaignId}`,
           customization: {
             title: 'donation',
             description: 'Test Description',
@@ -74,9 +75,9 @@ export class DonationService {
           currency: 'ETB',
           amount: dto.amount,
           tx_ref: txRef,
-          callback_url:
-            'https://webhook.site/1aa8bca0-b2a2-455a-8a12-10c9fc5f78b7',
-          return_url: 'https://github.com/Chapa-Et/chapa-nestjs',
+          callback_url: `${this.config.get('CALLBACK_URL')}donation/verify`,
+          // return_url: `${this.config.get('RETURN_URL')}campaign/${campaignId}`,
+          return_url: 'http://localhost/',
           customization: {
             title: 'donation',
             description: 'Test Description',
@@ -97,6 +98,7 @@ export class DonationService {
       });
     } catch (err) {
       console.log(err);
+      throw new InternalServerErrorException(err);
     }
   }
 

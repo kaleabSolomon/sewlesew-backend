@@ -82,6 +82,8 @@ export class CampaignController {
     let images: Image[] = [];
     let logo: UploadApiResponse | UploadApiErrorResponse | undefined;
 
+    console.log(files.otherImages);
+
     const campaignExists = await this.campaignService.checkCampaignExists(
       dto.tinNumber,
       dto.licenseNumber,
@@ -176,6 +178,8 @@ export class CampaignController {
       }
     }
 
+    console.log('about to upload other images');
+
     if (files.otherImages && files.otherImages.length > 0) {
       for (const img of files.otherImages) {
         const uploadedImg = await this.cloudinary.uploadFile(img);
@@ -189,6 +193,8 @@ export class CampaignController {
       }
     }
 
+    console.log('other images uploaded');
+
     images = [
       ...images,
       { imgType: ImageType.COVER_IMAGE, url: coverImage.url },
@@ -199,6 +205,7 @@ export class CampaignController {
       { docType: DocType.REGISTRATION_CERTIFICATE, url: regLicence.url },
     ];
 
+    console.log('images uploaded and done: ', images);
     return await this.campaignService.createBusinessCampaign(
       id,
       dto,
@@ -249,6 +256,8 @@ export class CampaignController {
     let docs: Doc[] = [];
     let images: Image[] = [];
     let logo: UploadApiResponse | UploadApiErrorResponse | undefined;
+
+    console.log(files);
 
     const campaignExists = await this.campaignService.checkCampaignExists(
       dto.tinNumber,
@@ -338,6 +347,8 @@ export class CampaignController {
       }
     }
 
+    console.log('about to upload other images');
+
     if (files.otherImages && files.otherImages.length > 0) {
       for (const img of files.otherImages) {
         const uploadedImg = await this.cloudinary.uploadFile(img);
@@ -350,6 +361,10 @@ export class CampaignController {
         });
       }
     }
+
+    console.log('other images uploaded');
+
+    console.log('images uploaded and done: ', images);
 
     images = [
       ...images,
@@ -403,8 +418,6 @@ export class CampaignController {
   ) {
     let docs: Doc[] = [];
     let images: Image[] = [];
-
-    console.log(files);
 
     const campaignExists =
       await this.campaignService.checkPersonalCampaignExists(id);
