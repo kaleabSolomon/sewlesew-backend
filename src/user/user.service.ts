@@ -26,6 +26,7 @@ export class UserService {
     lastName: true,
     profilePicture: true,
     campaigns: true,
+    Donation: true,
   };
 
   async getAllUsers(page: number, limit: number) {
