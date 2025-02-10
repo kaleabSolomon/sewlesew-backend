@@ -524,12 +524,18 @@ export class CampaignService {
           id: true,
           title: true,
           description: true,
-
+          businessId: true,
+          charityId: true,
           goalAmount: true,
           raisedAmount: true,
           category: true,
           deadline: true,
           status: true,
+          charity: {
+            select: {
+              isOrganization: true,
+            },
+          },
 
           campaignMedia: {
             where: {
@@ -538,6 +544,11 @@ export class CampaignService {
             select: {
               id: true,
               url: true,
+            },
+          },
+          _count: {
+            select: {
+              Donation: true,
             },
           },
         },
