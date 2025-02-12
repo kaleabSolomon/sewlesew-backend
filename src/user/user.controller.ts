@@ -92,7 +92,7 @@ export class UserController {
   @Roles(Role.USER)
   async changeUserPassword(
     @GetCurrentUser('userId') id: string,
-    dto: ChangePasswordDto,
+    @Body() dto: ChangePasswordDto,
   ) {
     return await this.authService.changeUserPassword(id, dto);
   }
