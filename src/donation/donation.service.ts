@@ -59,8 +59,8 @@ export class DonationService {
           currency: 'ETB',
           amount: dto.amount,
           tx_ref: txRef,
-          callback_url: `${this.config.get('CALLBACK_URL')}donation/verify`,
-          return_url: 'http://localhost/',
+          callback_url: `${this.config.get('CALLBACK_URL')}/api/donation/verify`,
+          // return_url: 'http://localhost:5173/capnsd/dshfasd',
           // return_url: `${this.config.get('RETURN_URL')}campaign/${campaignId}`,
           customization: {
             title: 'donation',
@@ -75,9 +75,7 @@ export class DonationService {
           currency: 'ETB',
           amount: dto.amount,
           tx_ref: txRef,
-          callback_url: `${this.config.get('CALLBACK_URL')}donation/verify`,
-          // return_url: `${this.config.get('RETURN_URL')}campaign/${campaignId}`,
-          return_url: 'http://localhost/',
+          callback_url: `${this.config.get('CALLBACK_URL')}/api/donation/verify`,
           customization: {
             title: 'donation',
             description: 'Test Description',

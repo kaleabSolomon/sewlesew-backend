@@ -32,7 +32,8 @@ export class DonationController {
     @Headers('x-chapa-signature') chapaSignature: string,
   ) {
     try {
-      // Validate the webhook signature
+      // console.log('hello');
+      // // Validate the webhook signature
       const hash = crypto
         .createHmac('sha256', this.config.get<string>('CHAPA_WEBHOOK_SECRET'))
         .update(JSON.stringify(req['body']))
@@ -42,7 +43,7 @@ export class DonationController {
         throw new BadRequestException('Invalid Chapa signature');
       }
 
-      console.log('we in boys');
+      // console.log(res);
 
       const { tx_ref } = req['body'];
 
