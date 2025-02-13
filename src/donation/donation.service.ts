@@ -124,6 +124,24 @@ export class DonationService {
         },
       });
 
+      // Step 3: Check if goal is met and close campaign
+      if (campaign.raisedAmount >= campaign.goalAmount) {
+        await this.prisma.campaign.update({
+          where: { id: campaign.id },
+          data: { status: 'CLOSED' },
+        });
+
+        await this.prisma.closedCampaign.create({
+          data: {
+            campaignId: campaign.id,
+            isCompleted: true,
+            reason: 'Target Goal met',
+          },
+        });
+
+        console.log(`Campaign ${campaign.id} closed as it reached its goal.`);
+      }
+
       return campaign;
     }
   }
