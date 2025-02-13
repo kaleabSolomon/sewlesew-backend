@@ -23,7 +23,36 @@ export class CampaignSchedulerService {
         data: { status: CampaignStatus.CLOSED },
       });
 
+      const updatedCampaigns = await this.prisma.campaign.findMany({
+        where: {
+          deadline: { lte: now },
+          status: CampaignStatus.CLOSED, // Now, we're fetching the ones that were closed
+        },
+      });
+
+      for (const campaign of updatedCampaigns) {
+        const existingClosedCampaign =
+          await this.prisma.closedCampaign.findFirst({
+            where: { campaignId: campaign.id },
+          });
+
+        if (!existingClosedCampaign) {
+          await this.prisma.closedCampaign.create({
+            data: {
+              campaignId: campaign.id,
+              reason: 'Deadline met',
+              isCompleted: false,
+            },
+          });
+          this.logger.log(`Campaign ${campaign.id} added to closedCampaigns.`);
+        } else {
+          this.logger.log(
+            `Campaign ${campaign.id} already exists in closedCampaigns.`,
+          );
+        }
+      }
       if (result.count > 0) {
+        console.log(result);
         this.logger.log(
           `Closed ${result.count} campaign(s) whose deadline has passed.`,
         );
