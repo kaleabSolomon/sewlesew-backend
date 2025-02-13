@@ -57,7 +57,26 @@ export class UserService {
   async getUser(id: string) {
     const user = await this.prisma.user.findFirst({
       where: { id },
-      select: this.returnableFieldsUser,
+      select: {
+        id: true,
+        email: true,
+        phoneNumber: true,
+        createdAt: true,
+        updatedAt: true,
+        isActive: true,
+        role: true,
+        isVerified: true,
+        dateOfBirth: true,
+        firstName: true,
+        lastName: true,
+        profilePicture: true,
+        campaigns: true,
+        Donation: {
+          include: {
+            campaign: true,
+          },
+        },
+      },
     });
 
     if (!user) throw new NotFoundException("couldn't find user");
