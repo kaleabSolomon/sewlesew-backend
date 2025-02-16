@@ -516,6 +516,107 @@ export class CampaignService {
       console.log(err);
     }
   }
+
+  async getCampaignsAdmin(
+    page: number,
+    limit: number,
+    // filters: {
+    //   category?: Category;
+    //   fullName?: string;
+    //   status?: CampaignStatus;
+    // },
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+      const take = limit;
+
+      // if (!filters.status) filters.status = CampaignStatus.ACTIVE;
+
+      const campaigns = await this.prisma.campaign.findMany({
+        where: {
+          // category: filters.category,
+          status: CampaignStatus.PENDING,
+          // OR: [
+          //   {
+          //     business: {
+          //       fullName: {
+          //         contains: filters.fullName,
+          //         // search: filters.fullName,
+          //       },
+          //     },
+          //   },
+          //   {
+          //     charity: {
+          //       fullName: {
+          //         contains: filters.fullName,
+          //       },
+          //     },
+          //   },
+          // ],
+        },
+        skip,
+        take,
+
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          businessId: true,
+          charityId: true,
+          goalAmount: true,
+          raisedAmount: true,
+          category: true,
+          status: true,
+          charity: {
+            select: {
+              fullName: true,
+              tinNumber: true,
+              licenseNumber: true,
+              docs: true,
+              isOrganization: true,
+            },
+          },
+          business: {
+            select: {
+              fullName: true,
+              tinNumber: true,
+              licenseNumber: true,
+              docs: true,
+            },
+          },
+
+          campaignMedia: true,
+          _count: {
+            select: {
+              Donation: {
+                where: {
+                  paymentStatus: PaymentStatus.VERIFIED,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!campaigns)
+        throw new InternalServerErrorException('Unable to get Campaigns. ');
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched campaigns successfully',
+        data: campaigns,
+        metadata: {
+          // totalItems,
+          // totalPages: Math.ceil(totalItems / limit),
+          pageSize: limit,
+          currentPage: page,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async getMyCampaigns(id: string) {
     try {
       const campaigns = await this.prisma.campaign.findMany({

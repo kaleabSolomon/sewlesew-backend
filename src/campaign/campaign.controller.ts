@@ -538,42 +538,43 @@ export class CampaignController {
   }
 
   @Get('/admin')
-  @Roles(Role.CAMPAIGNREVIEWER)
+  // @Roles(Role.SUPERADMIN)
+  @NoAuth()
   async getCampaingsAdmin(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @GetCurrentUser('role') role: Role,
-    @Query('category') category?: string,
-    @Query('for') fullName?: string,
-    @Query('status') status?: string,
+    // @GetCurrentUser('role') role: Role,
+    // @Query('category') category?: string,
+    // @Query('for') fullName?: string,
+    // @Query('status') status?: string,
   ) {
     page = Math.max(1, Number(page) || 1);
     limit = Math.max(1, Number(limit) || 10);
 
-    const filters: {
-      category?: Category;
-      fullName?: string;
-      status?: CampaignStatus;
-    } = {};
+    // const filters: {
+    //   category?: Category;
+    //   fullName?: string;
+    //   status?: CampaignStatus;
+    // } = {};
 
-    if (
-      status &&
-      role &&
-      role === Role.CAMPAIGNREVIEWER &&
-      Object.values(CampaignStatus).includes(status as CampaignStatus)
-    ) {
-      filters.status = status as CampaignStatus;
-    } else {
-      filters.status = CampaignStatus.ACTIVE;
-    }
+    // if (
+    //   status &&
+    //   role &&
+    //   role === Role.SUPERADMIN &&
+    //   Object.values(CampaignStatus).includes(status as CampaignStatus)
+    // ) {
+    //   filters.status = status as CampaignStatus;
+    // } else {
+    //   filters.status = CampaignStatus.ACTIVE;
+    // }
 
-    if (category && !Object.values(Category).includes(category as Category)) {
-      throw new BadRequestException(`Invalid category: ${category}`);
-    }
+    // if (category && !Object.values(Category).includes(category as Category)) {
+    //   throw new BadRequestException(`Invalid category: ${category}`);
+    // }
 
-    filters.category = category as Category;
-    if (fullName) filters.fullName = fullName;
-    return await this.campaignService.getCampaigns(page, limit, filters);
+    // filters.category = category as Category;
+    // if (fullName) filters.fullName = fullName;
+    return await this.campaignService.getCampaignsAdmin(page, limit);
   }
   // get my campaigns
 
@@ -593,7 +594,8 @@ export class CampaignController {
 
   // changeCampaignStatus
   @Patch(':id/status')
-  @Roles(Role.CAMPAIGNREVIEWER)
+  @NoAuth()
+  // @Roles(Role.CAMPAIGNREVIEWER)
   async changeCampaignStatus(
     @Param('id') campaignId: string,
     @Body('status') status: string,
