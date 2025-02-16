@@ -73,8 +73,9 @@ export class AuthController {
   @Get('/google/redirect')
   async handleRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = req.user;
-    res.send(tokens);
-    res.redirect('http://localhost:5174/');
+    res.cookie('access_token', tokens['access_token']);
+    res.cookie('refresh_token', tokens['refresh_token']);
+    res.redirect('http://localhost:5173');
   }
   @NoAuth()
   @UseGuards(GoogleAuthGuard)
