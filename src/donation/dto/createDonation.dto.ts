@@ -1,11 +1,19 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateDonationDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @IsString()
+  @IsNumber()
+  @Min(1, { message: 'Amount must be greater than 0' })
   @IsNotEmpty()
   amount: string;
 
