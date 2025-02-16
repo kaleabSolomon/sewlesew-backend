@@ -17,6 +17,7 @@ import { CampaignSchedulerService } from './scheduler/campaignScheduler.service'
 import { CampaignSchedulerModule } from './scheduler/campaignScheduler.module';
 import { ChapaModule } from 'chapa-nestjs';
 import { DonationModule } from './donation/donation.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { DonationModule } from './donation/donation.module';
       }),
     }),
     DonationModule,
+    StatsModule,
   ],
   controllers: [],
   providers: [
