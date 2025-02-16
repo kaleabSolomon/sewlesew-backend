@@ -345,7 +345,7 @@ export class AuthService {
         address: 'noreply@sewlesew.com',
       },
       recipient: email,
-      subject: 'Verify Your Afalagi Account',
+      subject: 'Verify Your SewleSew Account',
       html: `
        <!DOCTYPE html>
 <html>
@@ -561,8 +561,8 @@ export class AuthService {
       console.log('sending email');
       await this.emailService.sendEmail({
         from: {
-          name: 'Afalagi',
-          address: 'noreply@Afalagi.com',
+          name: 'Sewlesew',
+          address: 'noreply@sewlesew.com',
         },
 
         recipient: email,
