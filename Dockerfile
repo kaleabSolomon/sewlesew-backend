@@ -1,12 +1,11 @@
-FROM node:20
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
 # Install dependencies and tools
-RUN apt-get update && apt-get install -y netcat-openbsd \
-    && corepack enable \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache netcat-openbsd \
+    && corepack disable \
+    && npm install -g pnpm
 
 # Copy dependency files first
 COPY package.json pnpm-lock.yaml ./
