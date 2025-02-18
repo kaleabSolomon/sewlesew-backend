@@ -24,4 +24,4 @@ EXPOSE 3333
 
 # Set environment variable and start the application
 ENV PORT=3333
-CMD ["pnpm", "start:dev"]
+CMD ["pnpm", "start:prod"]
