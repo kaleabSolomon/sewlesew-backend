@@ -7,7 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   app.enableCors({
-    origin: ['https://sewlesew.vercel.app/'],
+    origin: [
+      'https://sewlesew.vercel.app',
+      'https://sewlesew-frontend-kbslmns-projects.vercel.app',
+      'https://sewlesew-frontend-git-main-kbslmns-projects.vercel.app',
+    ],
     credentials: true,
   });
 
