@@ -14,7 +14,8 @@ RUN pnpm install --frozen-lockfile --loglevel verbose
 # Copy the rest of the application files
 COPY . .
 
-
+# Build the project
+RUN pnpm run build
 
 # Expose the application port
 EXPOSE 3333
