@@ -8,20 +8,17 @@ RUN apk update && apk add --no-cache netcat-openbsd \
     && npm install -g pnpm
 
 # Copy dependency files first
-COPY package.json pnpm-lock.yaml ./
-
+COPY package.json pnpm-lock.yaml prisma/schema.prisma ./
 # Install Node.js dependencies
-RUN pnpm install
-
+RUN pnpm install --frozen-lockfile --loglevel verbose
 # Copy the rest of the application files
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
+
 
 # Expose the application port
 EXPOSE 3333
 
 # Set environment variable and start the application
 ENV PORT=3333
-CMD ["pnpm", "start:prod"]
+CMD ["sh", "-c", "npx prisma generate && pnpm start:prod"]
