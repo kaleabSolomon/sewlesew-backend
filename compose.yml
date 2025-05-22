@@ -7,6 +7,8 @@ services:
     ports:
       - '3333:3333'
       - '5555:5555'
+    env_file:
+      - .env
     environment:
       - PORT=3333
       - NODE_ENV=development

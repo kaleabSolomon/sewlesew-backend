@@ -197,8 +197,39 @@ model Admin {
   isActive               Boolean      @default(true)
   otlTokenExpiresAt      DateTime?
   Moderation             Moderation[]
+  AgentsCreated          Agent[]
 
   @@map("admins")
+}
+
+model Agent {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime
+
+  street     String?
+  city       String?
+  state      String?
+  postalCode String?
+  country    String?
+
+  idFront String
+  idBack  String
+
+  role        AdminRoles   @default(CALLCENTERAGENT)
+  isActive    Boolean      @default(true)
+  isDeleted   Boolean      @default(false)
+  isVerified  Boolean      @default(false)
+  Moderation  Moderation[]
+  createdById String
+  createdBy   Admin?       @relation(fields: [createdById], references: [id])
+
+  @@map("agents")
 }
 
 model Moderation {
@@ -209,7 +240,9 @@ model Moderation {
   targetId  String
   reason    String?
   createdAt DateTime         @default(now())
-  admin     Admin            @relation(fields: [adminId], references: [id])
+  admin     Admin?           @relation(fields: [adminId], references: [id])
+  Agent     Agent?           @relation(fields: [agentId], references: [id])
+  agentId   String?
 
   @@map("mods")
 }
