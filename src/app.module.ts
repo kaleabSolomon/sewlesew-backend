@@ -19,6 +19,8 @@ import { ChapaModule } from 'chapa-nestjs';
 import { DonationModule } from './donation/donation.module';
 import { StatsModule } from './stats/stats.module';
 import { AgentModule } from './agent/agent.module';
+import { LikeModule } from './like/like.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { AgentModule } from './agent/agent.module';
     DonationModule,
     StatsModule,
     AgentModule,
+    LikeModule,
+    CommentModule,
   ],
   controllers: [],
   providers: [

@@ -29,6 +29,7 @@ import { Doc, Image, userReq } from 'src/common/types';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 import { CloseCampaignDto } from './dto/closeCampaign.dto';
+import { OptionalAuth } from 'src/common/decorators/optionalAuth.decorator';
 
 @Controller('campaign')
 export class CampaignController {
@@ -544,12 +545,13 @@ export class CampaignController {
   }
 
   @Get('')
-  @NoAuth()
+  @OptionalAuth()
   async getCampaigns(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('category') category?: string,
     @Query('for') fullName?: string,
+    @GetCurrentUser('userId') userId?: string,
   ) {
     page = Math.max(1, Number(page) || 1);
     limit = Math.max(1, Number(limit) || 10);
@@ -565,7 +567,12 @@ export class CampaignController {
 
     filters.category = category as Category;
     if (fullName) filters.fullName = fullName;
-    return await this.campaignService.getCampaigns(page, limit, filters);
+    return await this.campaignService.getCampaigns(
+      page,
+      limit,
+      filters,
+      userId,
+    );
   }
 
   @Get('agent')

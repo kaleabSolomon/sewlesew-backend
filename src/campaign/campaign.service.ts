@@ -727,6 +727,7 @@ export class CampaignService {
       fullName?: string;
       status?: CampaignStatus;
     },
+    userId?: string,
   ) {
     try {
       const skip = (page - 1) * limit;
@@ -770,6 +771,15 @@ export class CampaignService {
           category: true,
           deadline: true,
           status: true,
+          like: {
+            where: {
+              userId,
+            },
+            select: {
+              id: true,
+            },
+          },
+
           charity: {
             select: {
               isOrganization: true,
@@ -792,6 +802,7 @@ export class CampaignService {
                   paymentStatus: PaymentStatus.VERIFIED,
                 },
               },
+              like: true,
             },
           },
         },
@@ -799,6 +810,13 @@ export class CampaignService {
 
       if (!campaigns)
         throw new InternalServerErrorException('Unable to get Campaigns. ');
+
+      const campaignsWithLikeStatus = campaigns.map((campaign) => ({
+        ...campaign,
+        isLikedByUser: campaign.like.length > 0,
+        like: undefined, // Remove the like array from response
+      }));
+      // TODO: may need fixing here
       const totalItems = await this.prisma.campaign.count({
         where: {
           category: filters.category,
@@ -826,7 +844,7 @@ export class CampaignService {
       return createApiResponse({
         status: 'success',
         message: 'Fetched campaigns successfully',
-        data: campaigns,
+        data: campaignsWithLikeStatus,
         metadata: {
           totalItems,
           totalPages: Math.ceil(totalItems / limit),
