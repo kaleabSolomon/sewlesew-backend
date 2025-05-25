@@ -30,6 +30,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 import { CloseCampaignDto } from './dto/closeCampaign.dto';
 import { OptionalAuth } from 'src/common/decorators/optionalAuth.decorator';
+import { AddCampaignUpdateDto } from './dto/addCampaignUpdate.dto';
 
 @Controller('campaign')
 export class CampaignController {
@@ -708,5 +709,16 @@ export class CampaignController {
     @Body() dto: CloseCampaignDto,
   ) {
     return await this.campaignService.closeCampaign(campaignId, dto);
+  }
+
+  @Post(':id/update')
+  @Roles(Role.USER, Role.CALLCENTERAGENT)
+  async addCampaignUpdate(
+    @Param('id') campaignId: string,
+    @Body()
+    dto: AddCampaignUpdateDto,
+    @GetCurrentUser() actor: userReq,
+  ) {
+    return await this.campaignService.addCampaignUpdate(campaignId, dto, actor);
   }
 }

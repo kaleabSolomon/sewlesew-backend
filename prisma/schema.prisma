@@ -15,15 +15,15 @@ datasource db {
 }
 
 model User {
-  id                        String         @id @default(uuid())
-  email                     String?        @unique
-  phoneNumber               String?        @unique
+  id                        String           @id @default(uuid())
+  email                     String?          @unique
+  phoneNumber               String?          @unique
   passwordHash              String?
   rtHash                    String?
-  createdAt                 DateTime       @default(now())
-  updatedAt                 DateTime       @updatedAt
-  isActive                  Boolean        @default(true)
-  isVerified                Boolean        @default(false)
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+  isActive                  Boolean          @default(true)
+  isVerified                Boolean          @default(false)
   verificationCode          Int?
   verificationCodeExpiresAt DateTime?
   resetPasswordToken        String?
@@ -32,13 +32,14 @@ model User {
   lastName                  String
   dateOfBirth               DateTime?
   profilePicture            String?
-  role                      String         @default("USER")
+  role                      String           @default("USER")
   authProviders             AuthProvider[]
   campaigns                 Campaign[]
   Donation                  Donation[]
   like                      like[]
   Comment                   Comment[]
   Testimonial               Testimonial[]
+  CampaignUpdate            CampaignUpdate[]
 
   @@map("users")
 }
@@ -91,17 +92,35 @@ model Campaign {
 
   BankDetail BankDetail? @relation("CampaignBankDetails")
 
-  businessId     String?         @unique
-  charityId      String?         @unique
-  business       Business?       @relation(fields: [businessId], references: [id])
-  charity        Charity?        @relation(fields: [charityId], references: [id])
+  businessId     String?          @unique
+  charityId      String?          @unique
+  business       Business?        @relation(fields: [businessId], references: [id])
+  charity        Charity?         @relation(fields: [charityId], references: [id])
   ClosedCampaign ClosedCampaign?
   Donation       Donation[]
   like           like[]
   Comment        Comment[]
+  CampaignUpdate CampaignUpdate[]
 
   @@index([businessId, charityId])
   @@map("campaigns")
+}
+
+model CampaignUpdate {
+  id         String  @id @default(uuid())
+  campaignId String
+  userId     String?
+  agentId    String?
+
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent    Agent?   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("campaign_updates")
 }
 
 model Business {
@@ -229,13 +248,14 @@ model Agent {
   idFront String
   idBack  String
 
-  role        AdminRoles @default(CALLCENTERAGENT)
-  isActive    Boolean    @default(true)
-  isDeleted   Boolean    @default(false)
-  isVerified  Boolean    @default(false)
-  createdById String
-  createdBy   Admin?     @relation(fields: [createdById], references: [id])
-  Campaign    Campaign[]
+  role           AdminRoles       @default(CALLCENTERAGENT)
+  isActive       Boolean          @default(true)
+  isDeleted      Boolean          @default(false)
+  isVerified     Boolean          @default(false)
+  createdById    String
+  createdBy      Admin?           @relation(fields: [createdById], references: [id])
+  Campaign       Campaign[]
+  CampaignUpdate CampaignUpdate[]
 
   @@map("agents")
 }

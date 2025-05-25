@@ -11,7 +11,7 @@ import {
   CreateOrganizationalCharityCampaignDto,
   CreatePersonalCharityCampaignDto,
 } from './dto';
-import { Doc, Image } from 'src/common/types';
+import { Doc, Image, userReq } from 'src/common/types';
 import {
   CampaignStatus,
   Category,
@@ -22,6 +22,7 @@ import { createApiResponse } from 'src/utils';
 import { AuthService } from 'src/auth/auth.service';
 import { SmsService } from 'src/sms/sms.service';
 import { CloseCampaignDto } from './dto/closeCampaign.dto';
+import { AddCampaignUpdateDto } from './dto/addCampaignUpdate.dto';
 
 @Injectable()
 export class CampaignService {
@@ -1216,6 +1217,27 @@ export class CampaignService {
             },
           },
           campaignMedia: true,
+          CampaignUpdate: {
+            select: {
+              id: true,
+              content: true,
+              title: true,
+              createdAt: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  profilePicture: true,
+                },
+              },
+              agent: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
           Donation: {
             where: {
               paymentStatus: PaymentStatus.VERIFIED,
@@ -1243,10 +1265,6 @@ export class CampaignService {
       });
     } catch (err) {
       console.log(err);
-
-      throw new InternalServerErrorException(
-        'An unexpected error occurred. Please try again later.',
-      );
     }
   }
 
@@ -1465,5 +1483,45 @@ export class CampaignService {
       console.log(err);
       throw new InternalServerErrorException('couldnt close campaign.');
     }
+  }
+
+  async addCampaignUpdate(
+    campaignId: string,
+    dto: AddCampaignUpdateDto,
+    actor: userReq,
+  ) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        status: CampaignStatus.ACTIVE,
+      },
+    });
+    if (!campaign) {
+      throw new NotFoundException('Campaign not found or is not active.');
+    }
+
+    const actorType =
+      actor.role === 'USER'
+        ? { userId: actor.userId }
+        : { agentId: actor.userId };
+
+    const update = await this.prisma.campaignUpdate.create({
+      data: {
+        content: dto.content,
+        campaignId: campaign.id,
+        title: dto.title,
+        ...actorType,
+      },
+    });
+
+    if (!update) {
+      throw new InternalServerErrorException('Failed to add campaign update.');
+    }
+
+    return createApiResponse({
+      status: 'success',
+      message: 'Campaign update added successfully.',
+      data: update,
+    });
   }
 }
