@@ -11,6 +11,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   changeAdminPasswordDto,
+  ChangeAgentPasswordDto,
   ChangePasswordDto,
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -564,7 +565,6 @@ export class AuthService {
           name: 'Sewlesew',
           address: 'noreply@sewlesew.com',
         },
-
         recipient: email,
         subject: emailSubject,
         html: emailBody,
@@ -724,6 +724,33 @@ export class AuthService {
     // return tokens
     return tokens;
   }
+  async agentLocalSignin(dto: SignInDto) {
+    //validate if user exists
+    const agent = await this.prisma.agent.findFirst({
+      where: {
+        email: dto.email,
+      },
+    });
+    if (!agent || !agent.isActive)
+      throw new ForbiddenException('Incorrect Credentials');
+
+    // validate if password matches
+    const pwMatches = await argon.verify(agent.passwordHash, dto.password);
+    if (!pwMatches) throw new ForbiddenException('Incorrect Credentials');
+    // generate tokens
+    const tokens = await this.generateTokens(
+      agent.id,
+      agent.isVerified,
+      agent.isActive,
+      agent.role,
+      agent.email,
+      null,
+    );
+    // update rt
+    // await this.updateRtHash(agent.id, tokens.refresh_token, RoleTypes.AGENT);
+    // return tokens
+    return { access_token: tokens.access_token };
+  }
 
   async adminRefresh(id: string, refreshToken: string) {
     // get user
@@ -749,6 +776,33 @@ export class AuthService {
     await this.updateRtHash(admin.id, tokens.refresh_token, RoleTypes.ADMIN);
     return tokens;
   }
-}
 
-// TODO: what if some on uses oauth after loging in with phone?????
+  async changeAgentPassword(id: string, dto: ChangeAgentPasswordDto) {
+    const { newPassword } = dto;
+    const agent = await this.prisma.agent.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!agent) {
+      throw new UnauthorizedException(
+        'Invalid or expired password reset token.',
+      );
+    }
+
+    const passwordHash = await this.hashData(newPassword);
+    await this.prisma.agent.update({
+      where: { id: agent.id },
+      data: {
+        passwordHash,
+        isVerified: true,
+      },
+    });
+    return createApiResponse({
+      status: 'success',
+      message: 'Password changed successfully.',
+      data: {},
+    });
+  }
+}

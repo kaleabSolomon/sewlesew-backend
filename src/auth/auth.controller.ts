@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Query,
   Req,
@@ -14,6 +15,7 @@ import { AuthService } from './auth.service';
 
 import { GetCurrentUser, NoAuth } from 'src/common/decorators';
 import {
+  ChangeAgentPasswordDto,
   ForgotPasswordDto,
   ResetPasswordDto,
   SignInDto,
@@ -132,6 +134,19 @@ export class AuthController {
   async adminLogout(@GetCurrentUser('userId') userId: string) {
     return await this.authService.logout(userId, RoleTypes.ADMIN);
   }
+  @NoAuth()
+  @HttpCode(HttpStatus.OK)
+  @Post('agent/local/signin')
+  async agentLocalSignin(@Body() dto: SignInDto) {
+    const tokens = await this.authService.agentLocalSignin(dto);
+    return tokens;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('agent/logout')
+  async agentLogout(@GetCurrentUser('userId') userId: string) {
+    return await this.authService.logout(userId, RoleTypes.AGENT);
+  }
 
   @HttpCode(HttpStatus.OK)
   @NoAuth()
@@ -143,5 +158,13 @@ export class AuthController {
       user['refreshToken'],
     );
     return tokens;
+  }
+
+  @Patch('/agent/change-password')
+  async agentChangePassword(
+    @GetCurrentUser('userId') userId: string,
+    @Body() dto: ChangeAgentPasswordDto,
+  ) {
+    return await this.authService.changeAgentPassword(userId, dto);
   }
 }

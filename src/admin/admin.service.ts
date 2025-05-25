@@ -209,27 +209,9 @@ export class AdminService {
 
   async getAdminById(id: string) {
     try {
-    } catch (err) {
-      console.log(err);
       const admin = await this.prisma.admin.findFirst({
         where: {
-          AND: [
-            { id },
-            {
-              OR: [
-                { role: AdminRoles.CALLCENTERAGENT },
-                { role: AdminRoles.CAMPAIGNREVIEWER },
-              ],
-            },
-          ],
-        },
-        select: {
-          rtHash: false,
-          resetPasswordExpiresAt: false,
-          resetPasswordToken: false,
-          otlToken: false,
-          otlTokenExpiresAt: false,
-          Moderation: true,
+          id,
         },
       });
 
@@ -240,6 +222,8 @@ export class AdminService {
         message: 'Admin Found',
         data: admin,
       });
+    } catch (err) {
+      console.log(err);
     }
   }
 

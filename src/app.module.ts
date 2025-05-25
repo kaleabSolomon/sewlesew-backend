@@ -8,7 +8,7 @@ import { AtGuard } from './auth/guards';
 import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { SmsModule } from './sms/sms.module';
-import { ModerationModule } from './moderation/moderation.module';
+// import { ModerationModule } from './moderation/moderation.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { CampaignModule } from './campaign/campaign.module';
@@ -30,7 +30,7 @@ import { AgentModule } from './agent/agent.module';
     UserModule,
     AdminModule,
     SmsModule,
-    ModerationModule,
+    // ModerationModule,
     CloudinaryModule,
     CampaignModule,
     CampaignSchedulerModule,

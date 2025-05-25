@@ -77,6 +77,12 @@ export class AgentController {
     const adminId = req.user.id;
     return this.agentService.getAgentsCreatedByAdmin(adminId, search);
   }
+  @Get('/me')
+  @Roles(Role.CALLCENTERAGENT)
+  async getMyProfile(@GetCurrentUser('userId') userId: string) {
+    console.log(userId);
+    return this.agentService.getAgentById(userId);
+  }
 
   @Get(':id')
   @Roles(Role.SUPERADMIN)

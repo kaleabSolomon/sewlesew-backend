@@ -25,9 +25,10 @@ import {
 import * as moment from 'moment';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { CampaignStatus, Category, DocType, ImageType } from '@prisma/client';
-import { Doc, Image } from 'src/common/types';
+import { Doc, Image, userReq } from 'src/common/types';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
+import { CloseCampaignDto } from './dto/closeCampaign.dto';
 
 @Controller('campaign')
 export class CampaignController {
@@ -65,7 +66,7 @@ export class CampaignController {
     ]),
   )
   async createBusinessCampaign(
-    @GetCurrentUser('userId') id: string,
+    @GetCurrentUser() user: userReq,
     @UploadedFiles()
     files: {
       tinCertificate?: Express.Multer.File[];
@@ -206,6 +207,18 @@ export class CampaignController {
     ];
 
     console.log('images uploaded and done: ', images);
+
+    const id = user.userId;
+    const role = user.role;
+
+    if (role === Role.CALLCENTERAGENT) {
+      return await this.campaignService.createBusinessCampaignAgent(
+        id,
+        dto,
+        images,
+        docs,
+      );
+    }
     return await this.campaignService.createBusinessCampaign(
       id,
       dto,
@@ -241,7 +254,7 @@ export class CampaignController {
     ]),
   )
   async createCharityCampaign(
-    @GetCurrentUser('userId') id: string,
+    @GetCurrentUser() user: userReq,
     @UploadedFiles()
     files: {
       tinCertificate?: Express.Multer.File[];
@@ -375,7 +388,16 @@ export class CampaignController {
       { docType: DocType.TIN_CERTIFICATE, url: tinCert.url },
       { docType: DocType.REGISTRATION_CERTIFICATE, url: regLicence.url },
     ];
-
+    const id = user.userId;
+    const role = user.role;
+    if (role === Role.CALLCENTERAGENT) {
+      return await this.campaignService.createOrganizationalCharityCampaignAgent(
+        id,
+        dto,
+        images,
+        docs,
+      );
+    }
     return await this.campaignService.createOrganizationalCharityCampaign(
       id,
       dto,
@@ -406,7 +428,7 @@ export class CampaignController {
     ]),
   )
   async createPersonalCampaign(
-    @GetCurrentUser('userId') id: string,
+    @GetCurrentUser() user: userReq,
     @UploadedFiles()
     files: {
       personalDocument?: Express.Multer.File[];
@@ -420,7 +442,7 @@ export class CampaignController {
     let images: Image[] = [];
 
     const campaignExists =
-      await this.campaignService.checkPersonalCampaignExists(id);
+      await this.campaignService.checkPersonalCampaignExists(user.userId);
     if (campaignExists)
       throw new ConflictException(
         'You already have an ongoing campaign. Only One active campaign is allowed per user. ',
@@ -503,7 +525,16 @@ export class CampaignController {
       ...docs,
       { docType: DocType.PERSONAL_DOCUMENT, url: personalDoc.url },
     ];
-
+    const id = user.userId;
+    const role = user.role;
+    if (role === Role.CALLCENTERAGENT) {
+      return await this.campaignService.createPersonalCharityCampaignAgent(
+        id,
+        dto,
+        images,
+        docs,
+      );
+    }
     return await this.campaignService.createPersonalCharityCampaign(
       id,
       dto,
@@ -514,7 +545,7 @@ export class CampaignController {
 
   @Get('')
   @NoAuth()
-  async getCampaings(
+  async getCampaigns(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('category') category?: string,
@@ -535,6 +566,31 @@ export class CampaignController {
     filters.category = category as Category;
     if (fullName) filters.fullName = fullName;
     return await this.campaignService.getCampaigns(page, limit, filters);
+  }
+
+  @Get('agent')
+  @NoAuth()
+  async getCampaignsAgent(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('category') category?: string,
+    @Query('search') searchTerm?: string,
+  ) {
+    page = Math.max(1, Number(page) || 1);
+    limit = Math.max(1, Number(limit) || 10);
+
+    const filters: {
+      category?: Category;
+      searchTerm?: string;
+    } = {};
+
+    if (category && !Object.values(Category).includes(category as Category)) {
+      throw new BadRequestException(`Invalid category: ${category}`);
+    }
+
+    filters.category = category as Category;
+    if (searchTerm) filters.searchTerm = searchTerm;
+    return await this.campaignService.getCampaignsAgent(page, limit, filters);
   }
 
   @Get('/admin')
@@ -576,7 +632,17 @@ export class CampaignController {
     // if (fullName) filters.fullName = fullName;
     return await this.campaignService.getCampaignsAdmin(page, limit);
   }
-  // get my campaigns
+
+  @Patch('verify/:id')
+  @Roles(Role.USER, Role.CALLCENTERAGENT)
+  async verifyCampaign(
+    @Param('id') id: string,
+    @GetCurrentUser() user: userReq,
+  ) {
+    console.log('user: ', user);
+
+    return await this.campaignService.sendCloseVerificationCode(id);
+  }
 
   @Get('me')
   @Roles(Role.USER)
@@ -613,12 +679,27 @@ export class CampaignController {
   // delete campaign
 
   @Delete(':id')
-  @Roles(Role.USER)
+  @Roles(Role.USER, Role.CALLCENTERAGENT)
   async deleteCampaign(
     @Param('id') campaignId: string,
     @GetCurrentUser('userId') userId: string,
   ) {
     return await this.campaignService.deleteCampaign(campaignId, userId);
   }
-  // close campaign
+
+  @Post(':id/verify-code')
+  async verifyCampaignCode(
+    @Param('id') campaignId: string,
+    @Body('verificationCode') code: string,
+  ) {
+    return await this.campaignService.verifyCampaignCode(campaignId, code);
+  }
+
+  @Patch(':id/close')
+  async closeCampaign(
+    @Param('id') campaignId: string,
+    @Body() dto: CloseCampaignDto,
+  ) {
+    return await this.campaignService.closeCampaign(campaignId, dto);
+  }
 }

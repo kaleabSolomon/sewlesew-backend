@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CampaignStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { createApiResponse } from 'src/utils';
 
 @Injectable()
 export class StatsService {
@@ -55,6 +56,57 @@ export class StatsService {
       };
     } catch {
       throw new InternalServerErrorException('something went wrong');
+    }
+  }
+
+  async getAgentStats() {
+    try {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const totalAgentsCount = await this.prisma.agent.count({
+        where: { isDeleted: false },
+      });
+
+      const activeAgentsCount = await this.prisma.agent.count({
+        where: {
+          isActive: true,
+          isVerified: true,
+          isDeleted: false,
+        },
+      });
+
+      const newAgentsTodayCount = await this.prisma.agent.count({
+        where: {
+          createdAt: {
+            gte: twentyFourHoursAgo,
+          },
+          isDeleted: false,
+        },
+      });
+
+      const inactiveAgentsCount = await this.prisma.agent.count({
+        where: {
+          isDeleted: false,
+          OR: [{ isVerified: false }, { isActive: false }],
+        },
+      });
+
+      const statsData = {
+        totalAgents: totalAgentsCount,
+        activeAgents: activeAgentsCount,
+        newAgentsToday: newAgentsTodayCount,
+        inactiveAgents: inactiveAgentsCount,
+      };
+      return createApiResponse({
+        status: 'success',
+        message: 'Fetched Agent Stats Successfully',
+        data: statsData, // Using 'data' key for the payload
+      });
+    } catch (error) {
+      console.error('Error fetching agent stats:', error); // It's good practice to log the actual error
+      throw new InternalServerErrorException(
+        'Something went wrong while fetching agent stats',
+      );
     }
   }
 }

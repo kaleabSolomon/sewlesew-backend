@@ -18,6 +18,11 @@ export class AdminController {
   constructor(private adminService: AdminService) {}
 
   @Roles(Role.SUPERADMIN)
+  @Get(':adminId')
+  async getAdmin(@Param('adminId') id: string) {
+    return await this.adminService.getAdminById(id);
+  }
+  @Roles(Role.SUPERADMIN)
   @Post('')
   async createAdmin(@Body() dto: CreateAdminDto) {
     return await this.adminService.createAdmin(dto);
@@ -46,11 +51,5 @@ export class AdminController {
     limit = Math.max(1, Number(limit) || 10);
 
     return await this.adminService.getAdmins(page, limit, email);
-  }
-
-  @Roles(Role.SUPERADMIN)
-  @Get(':adminId')
-  async getAdmin(@Param('adminId') id: string) {
-    return await this.adminService.getAdminById(id);
   }
 }

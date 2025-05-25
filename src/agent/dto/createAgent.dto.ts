@@ -30,11 +30,11 @@ export class CreateAgentDto {
 
   @IsString()
   @IsOptional()
-  city?: string;
+  city: string;
 
   @IsString()
   @IsOptional()
-  state?: string;
+  state: string;
 
   @IsString()
   @IsOptional()
@@ -42,7 +42,7 @@ export class CreateAgentDto {
 
   @IsString()
   @IsOptional()
-  country?: string;
+  country: string;
 }
 
 export class UpdateAgentDto extends PartialType(CreateAgentDto) {}

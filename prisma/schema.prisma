@@ -36,6 +36,9 @@ model User {
   authProviders             AuthProvider[]
   campaigns                 Campaign[]
   Donation                  Donation[]
+  like                      like[]
+  Comment                   Comment[]
+  Testimonial               Testimonial[]
 
   @@map("users")
 }
@@ -65,7 +68,8 @@ model BankDetail {
 
 model Campaign {
   id           String         @id @default(uuid())
-  userId       String
+  userId       String?
+  agentId      String?
   title        String         @db.VarChar(50)
   description  String
   goalAmount   Decimal        @db.Decimal(11, 2)
@@ -76,11 +80,14 @@ model Campaign {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  // Relations
+  closeCampaignVerificationCode          Int?
+  closeCampaignVerificationCodeExpiresAt DateTime?
 
+  // Relations
   campaignMedia CampaignMedia[] @relation("CampaignMedia")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent Agent? @relation(fields: [agentId], references: [id])
 
   BankDetail BankDetail? @relation("CampaignBankDetails")
 
@@ -90,6 +97,8 @@ model Campaign {
   charity        Charity?        @relation(fields: [charityId], references: [id])
   ClosedCampaign ClosedCampaign?
   Donation       Donation[]
+  like           like[]
+  Comment        Comment[]
 
   @@index([businessId, charityId])
   @@map("campaigns")
@@ -181,12 +190,12 @@ model CampaignDoc {
 }
 
 model Admin {
-  id                     String       @id @default(uuid())
-  email                  String       @unique
+  id                     String     @id @default(uuid())
+  email                  String     @unique
   passwordHash           String?
   rtHash                 String?
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @updatedAt
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
   resetPasswordToken     String?
   resetPasswordExpiresAt DateTime?
   firstName              String
@@ -194,9 +203,8 @@ model Admin {
   dateOfBirth            DateTime
   role                   AdminRoles
   otlToken               String?
-  isActive               Boolean      @default(true)
+  isActive               Boolean    @default(true)
   otlTokenExpiresAt      DateTime?
-  Moderation             Moderation[]
   AgentsCreated          Agent[]
 
   @@map("admins")
@@ -221,30 +229,78 @@ model Agent {
   idFront String
   idBack  String
 
-  role        AdminRoles   @default(CALLCENTERAGENT)
-  isActive    Boolean      @default(true)
-  isDeleted   Boolean      @default(false)
-  isVerified  Boolean      @default(false)
-  Moderation  Moderation[]
+  role        AdminRoles @default(CALLCENTERAGENT)
+  isActive    Boolean    @default(true)
+  isDeleted   Boolean    @default(false)
+  isVerified  Boolean    @default(false)
   createdById String
-  createdBy   Admin?       @relation(fields: [createdById], references: [id])
+  createdBy   Admin?     @relation(fields: [createdById], references: [id])
+  Campaign    Campaign[]
 
   @@map("agents")
 }
 
-model Moderation {
-  id        String           @id @default(uuid())
-  adminId   String
-  action    AdminActions
-  target    ModerationTarget
-  targetId  String
-  reason    String?
-  createdAt DateTime         @default(now())
-  admin     Admin?           @relation(fields: [adminId], references: [id])
-  Agent     Agent?           @relation(fields: [agentId], references: [id])
-  agentId   String?
+model like {
+  id         String   @id @default(uuid())
+  userId     String
+  campaignId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@map("mods")
+  user          User         @relation(fields: [userId], references: [id])
+  campaign      Campaign?    @relation(fields: [campaignId], references: [id])
+  Testimonial   Testimonial? @relation(fields: [testimonialId], references: [id])
+  testimonialId String?
+}
+
+model Comment {
+  id            String  @id @default(uuid())
+  userId        String
+  campaignId    String?
+  testimonialId String?
+  commentText   String
+  parentId      String?
+  isActive      Boolean @default(true)
+
+  campaign     Campaign?    @relation(fields: [campaignId], references: [id])
+  successStory Testimonial? @relation(fields: [testimonialId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  parent  Comment?  @relation("CommentParent", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentParent")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("Comments")
+}
+
+model Testimonial {
+  id               String             @id @default(uuid())
+  userId           String
+  closedCampaignId String             @unique
+  title            String
+  content          String
+  images           TestimonialImage[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id])
+  closedCampaign ClosedCampaign @relation(fields: [closedCampaignId], references: [id])
+  comments       Comment[]
+  likes          like[]
+}
+
+model TestimonialImage {
+  id            String   @id @default(uuid())
+  testimonialId String
+  url           String
+  createdAt     DateTime @default(now())
+
+  testimonial Testimonial @relation(fields: [testimonialId], references: [id], onDelete: Cascade)
 }
 
 model ClosedCampaign {
@@ -254,7 +310,8 @@ model ClosedCampaign {
   reason      String?
   createdAt   DateTime @default(now())
 
-  campaign Campaign @relation(fields: [campaignId], references: [id])
+  campaign    Campaign     @relation(fields: [campaignId], references: [id])
+  Testimonial Testimonial?
 }
 
 model Donation {
@@ -294,13 +351,6 @@ enum AdminActions {
   UPDATE
   APPROVE
   REJECT
-}
-
-enum ModerationTarget {
-  CAMPAIGN
-  TESTIMONIAL
-  USER
-  DONATION
 }
 
 enum BusinessSector {

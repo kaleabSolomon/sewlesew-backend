@@ -24,7 +24,7 @@ export class SignInDto {
 
   @IsNotEmpty()
   @MinLength(6)
-  @MaxLength(12)
+  @MaxLength(20)
   @IsString()
   password: string;
 }

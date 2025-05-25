@@ -159,7 +159,9 @@ export class AgentService {
 
           isDeleted: false,
         }
-      : {};
+      : {
+          isDeleted: false,
+        };
 
     const agents = await this.prisma.agent.findMany({
       where,
@@ -170,9 +172,15 @@ export class AgentService {
         lastName: true,
         dateOfBirth: true,
         role: true,
+        city: true,
+        country: true,
+        state: true,
+        street: true,
+        postalCode: true,
         isActive: true,
         isVerified: true,
         createdAt: true,
+        isDeleted: true,
         updatedAt: true,
         createdBy: {
           select: {

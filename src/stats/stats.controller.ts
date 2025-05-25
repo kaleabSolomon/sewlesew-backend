@@ -11,4 +11,10 @@ export class StatsController {
   async getCampaignCount() {
     return await this.statsService.getCampaignCount();
   }
+
+  @NoAuth()
+  @Get('agents')
+  async getAgentStats() {
+    return await this.statsService.getAgentStats();
+  }
 }

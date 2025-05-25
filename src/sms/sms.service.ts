@@ -7,8 +7,10 @@ export class SmsService {
   private twilioClient: Twilio;
 
   constructor(private configService: ConfigService) {
-    const accountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
-    const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
+    const accountSid = this.configService.get<string>(
+      'TWILIO_ACCOUNT_SID_TEST',
+    );
+    const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN_TEST');
     this.twilioClient = new Twilio(accountSid, authToken);
   }
 
@@ -16,7 +18,7 @@ export class SmsService {
     try {
       await this.twilioClient.messages.create({
         body: message,
-        from: this.configService.get<string>('TWILIO_FROM_NUMBER'),
+        from: this.configService.get<string>('TWILIO_FROM_NUMBER_TEST_SUCCESS'),
         to,
       });
       console.log(`SMS sent successfully to ${to}`);

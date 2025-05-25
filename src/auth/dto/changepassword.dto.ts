@@ -23,3 +23,20 @@ export class ChangePasswordDto {
   })
   passwordConfirm: string;
 }
+
+export class ChangeAgentPasswordDto {
+  @IsNotEmpty()
+  @MinLength(8)
+  @MaxLength(20)
+  @IsString()
+  newPassword: string;
+
+  @IsNotEmpty()
+  @MinLength(8)
+  @MaxLength(20)
+  @IsString()
+  @Match('newPassword', {
+    message: 'Password confirmation does not match password',
+  })
+  passwordConfirm: string;
+}
