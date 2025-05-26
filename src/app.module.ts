@@ -21,6 +21,7 @@ import { StatsModule } from './stats/stats.module';
 import { AgentModule } from './agent/agent.module';
 import { LikeModule } from './like/like.module';
 import { CommentModule } from './comment/comment.module';
+import { TestimonialModule } from './testimonial/testimonial.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CommentModule } from './comment/comment.module';
     AgentModule,
     LikeModule,
     CommentModule,
+    TestimonialModule,
   ],
   controllers: [],
   providers: [

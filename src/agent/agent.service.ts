@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAgentDto, UpdateAgentDto } from './dto/createAgent.dto';
-import * as moment from 'moment';
+import moment from 'moment';
 import * as crypto from 'crypto';
 import { AuthService } from 'src/auth/auth.service';
 import { SendEmailDto } from 'src/email/dto';

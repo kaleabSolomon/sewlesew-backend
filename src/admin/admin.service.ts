@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import crypto from 'crypto';
-import * as moment from 'moment';
+import moment from 'moment';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAdminDto, UpdateAdminDto } from './dto';
 import { EmailService } from 'src/email/email.service';

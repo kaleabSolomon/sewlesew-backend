@@ -21,7 +21,7 @@ import {
   VerifyAccountDto,
 } from './dto';
 import * as argon from 'argon2';
-import * as moment from 'moment';
+import moment from 'moment';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';

@@ -135,6 +135,7 @@ model Business {
   publicPhoneNumber String?
   contactEmail      String
   contactPhone      String
+  country           String
   region            String
   city              String
   relativeLocation  String?
@@ -161,6 +162,7 @@ model Charity {
   publicPhoneNumber String?
   contactEmail      String
   contactPhone      String
+  country           String
   region            String
   city              String
   relativeLocation  String?
@@ -299,16 +301,15 @@ model Comment {
 }
 
 model Testimonial {
-  id                 String   @id @default(uuid())
-  userId             String
-  closedCampaignId   String   @unique
-  title              String
-  content            String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  testimonialImageId String
+  id               String   @id @default(uuid())
+  userId           String
+  closedCampaignId String   @unique
+  title            String
+  content          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  coverImageUrl TestimonialImage @relation(fields: [testimonialImageId], references: [id])
+  coverImageUrl String
 
   user           User           @relation(fields: [userId], references: [id])
   closedCampaign ClosedCampaign @relation(fields: [closedCampaignId], references: [id])
@@ -316,13 +317,13 @@ model Testimonial {
   likes          like[]
 }
 
-model TestimonialImage {
-  id            String        @id @default(uuid())
-  testimonialId String
-  url           String
-  createdAt     DateTime      @default(now())
-  Testimonial   Testimonial[]
-}
+// model TestimonialImage {
+//   id            String        @id @default(uuid())
+//   testimonialId String
+//   url           String
+//   createdAt     DateTime      @default(now())
+//   Testimonial   Testimonial[]
+// }
 
 model ClosedCampaign {
   id          String   @id @default(uuid())

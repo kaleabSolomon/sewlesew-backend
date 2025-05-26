@@ -24,30 +24,33 @@ export class DonationController {
     private config: ConfigService,
   ) {}
 
-  @Post('verify')
+  @Get('verify')
   @NoAuth()
   async verify(
     @Req() req: Express.Request,
     @Res() res: Express.Response,
-    @Headers('x-chapa-signature') chapaSignature: string,
+    // @Headers('x-chapa-signature') chapaSignature: string,
   ) {
     try {
       // console.log('hello');
-      // // Validate the webhook signature
-      const hash = crypto
-        .createHmac('sha256', this.config.get<string>('CHAPA_WEBHOOK_SECRET'))
-        .update(JSON.stringify(req['body']))
-        .digest('hex');
+      // // // Validate the webhook signature
+      // const hash = crypto
+      //   .createHmac('sha256', this.config.get<string>('CHAPA_WEBHOOK_SECRET'))
+      //   .update(JSON.stringify(req['body']))
+      //   .digest('hex');
 
-      if (hash !== chapaSignature) {
-        throw new BadRequestException('Invalid Chapa signature');
-      }
+      // console.log(chapaSignature, hash);
 
-      // console.log(res);
+      // if (hash !== chapaSignature) {
+      //   throw new BadRequestException('Invalid Chapa signature');
+      // }
 
-      const { tx_ref } = req['body'];
+      // // console.log(res);
+      // console.log(req);
 
-      return await this.donationService.verify(tx_ref);
+      const { trx_ref } = req['body'];
+
+      return await this.donationService.verify(trx_ref);
     } catch (err) {
       console.error(err.message);
     }

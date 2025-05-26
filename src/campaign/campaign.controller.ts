@@ -22,7 +22,7 @@ import {
   CreatePersonalCharityCampaignDto,
 } from './dto';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { CampaignStatus, Category, DocType, ImageType } from '@prisma/client';
 import { Doc, Image, userReq } from 'src/common/types';

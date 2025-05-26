@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as moment from 'moment';
+import moment from 'moment';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createApiResponse } from 'src/utils';
 import { EditUserDto } from './dto';

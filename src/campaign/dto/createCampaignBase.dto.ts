@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsEmail,
-  IsPhoneNumber,
   MinLength,
   IsDateString,
   IsNumber,
@@ -22,11 +21,11 @@ export class CreateCampaignBaseDto {
   @IsOptional()
   publicEmail?: string;
 
-  @IsPhoneNumber()
+  @IsString()
   @IsOptional()
   publicPhoneNumber?: string;
 
-  @IsPhoneNumber()
+  @IsString()
   @IsNotEmpty()
   contactPhoneNumber: string;
 
@@ -37,6 +36,10 @@ export class CreateCampaignBaseDto {
   @IsString()
   @IsNotEmpty()
   region: string;
+
+  @IsString()
+  @IsNotEmpty()
+  country: string;
 
   @IsString()
   @IsNotEmpty()

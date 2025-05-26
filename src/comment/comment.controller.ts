@@ -17,9 +17,9 @@ import { CreateCommentDto } from './dto/CreateComment.dto';
 export class CommentController {
   constructor(private commentService: CommentService) {}
 
-  @Post('/post')
+  @Post('/campaign')
   @Roles(Role.USER)
-  async createPostComment(
+  async createCampaignComment(
     @GetCurrentUser('userId') userId: string,
     @Body() dto: CreateCommentDto,
   ) {
