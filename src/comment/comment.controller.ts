@@ -8,7 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { GetCurrentUser, Roles } from 'src/common/decorators';
+import { GetCurrentUser, NoAuth, Roles } from 'src/common/decorators';
 import { Role } from 'src/common/enums';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
@@ -36,6 +36,7 @@ export class CommentController {
     return await this.commentService.createTestimonialComment(userId, dto);
   }
 
+  @NoAuth()
   @Get('/campaign/:campaignId')
   async getCampaignComments(
     @Param('campaignId') campaignId: string,
@@ -52,6 +53,7 @@ export class CommentController {
     );
   }
 
+  @NoAuth()
   @Get('/:commentId/replies')
   async getCommentReplies(
     @Param('commentId') commentId: string,

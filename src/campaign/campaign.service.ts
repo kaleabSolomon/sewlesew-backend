@@ -1462,7 +1462,7 @@ export class CampaignService {
       await this.prisma.campaign.update({
         where: { id: campaignId },
         data: {
-          status: CampaignStatus.CLOSED,
+          status: CampaignStatus.CANCELED,
         },
       });
 
