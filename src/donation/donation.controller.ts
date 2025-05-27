@@ -46,7 +46,6 @@ export class DonationController {
       }
 
       // console.log(res);
-      console.log(req);
 
       const { tx_ref } = req['body'];
 

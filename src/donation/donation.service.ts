@@ -231,7 +231,8 @@ export class DonationService {
           },
         },
       });
-      if (campaign.raisedAmount >= campaign.goalAmount) {
+
+      if (Number(campaign.raisedAmount) >= Number(campaign.goalAmount)) {
         console.log('closing bcz goal is met');
         await this.prisma.campaign.update({
           where: { id: campaign.id },
