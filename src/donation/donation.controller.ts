@@ -24,37 +24,69 @@ export class DonationController {
     private config: ConfigService,
   ) {}
 
-  @Get('verify')
+  @Post('verify')
   @NoAuth()
   async verify(
     @Req() req: Express.Request,
     @Res() res: Express.Response,
-    // @Headers('x-chapa-signature') chapaSignature: string,
+    @Headers('x-chapa-signature') chapaSignature: string,
   ) {
     try {
-      // console.log('hello');
-      // // // Validate the webhook signature
-      // const hash = crypto
-      //   .createHmac('sha256', this.config.get<string>('CHAPA_WEBHOOK_SECRET'))
-      //   .update(JSON.stringify(req['body']))
-      //   .digest('hex');
+      console.log('hello');
+      // // Validate the webhook signature
+      const hash = crypto
+        .createHmac('sha256', this.config.get<string>('CHAPA_WEBHOOK_SECRET'))
+        .update(JSON.stringify(req['body']))
+        .digest('hex');
 
-      // console.log(chapaSignature, hash);
+      console.log(chapaSignature, hash);
 
-      // if (hash !== chapaSignature) {
-      //   throw new BadRequestException('Invalid Chapa signature');
-      // }
+      if (hash !== chapaSignature) {
+        throw new BadRequestException('Invalid Chapa signature');
+      }
 
-      // // console.log(res);
-      // console.log(req);
+      // console.log(res);
+      console.log(req);
 
-      const { trx_ref } = req['body'];
+      const { tx_ref } = req['body'];
 
-      return await this.donationService.verify(trx_ref);
+      return await this.donationService.verify(tx_ref);
     } catch (err) {
       console.error(err.message);
     }
   }
+
+  // @Get('verify')
+  // @NoAuth()
+  // async verify(
+  //   @Req() req: Express.Request,
+  //   @Res() res: Express.Response,
+  //   // @Headers('x-chapa-signature') chapaSignature: string,
+  // ) {
+  //   try {
+  //     // console.log('hello');
+  //     // // // Validate the webhook signature
+  //     // const hash = crypto
+  //     //   .createHmac('sha256', this.config.get<string>('CHAPA_WEBHOOK_SECRET'))
+  //     //   .update(JSON.stringify(req['body']))
+  //     //   .digest('hex');
+
+  //     // console.log(chapaSignature, hash);
+
+  //     // if (hash !== chapaSignature) {
+  //     //   throw new BadRequestException('Invalid Chapa signature');
+  //     // }
+
+  //     // // console.log(res);
+  //     // console.log(req);
+
+  //     const { trx_ref } = req['body'];
+
+  //     return await this.donationService.verify(trx_ref);
+  //   } catch (err) {
+  //     console.error(err.message);
+  //   }
+  // }
 
   // @Post('verify/:txRef')
   // @NoAuth()
@@ -63,26 +95,31 @@ export class DonationController {
   // }
 
   @Post(':id')
-  async donate(
+  async donateChapa(
     @Body() dto: CreateDonationDto,
     @Param('id') campaignId: string,
     @GetCurrentUser('userId') userId: string,
     @Query('medium') medium?: Medium,
   ) {
     if (!medium) medium = Medium.Web;
-    return await this.donationService.donate(dto, campaignId, medium, userId);
+    return await this.donationService.donateChapa(
+      dto,
+      campaignId,
+      medium,
+      userId,
+    );
   }
 
   @Post('guest/:id')
   @NoAuth()
-  async donateGuest(
+  async donateGuestChapa(
     @Body() dto: CreateDonationDto,
     @Param('id') campaignId: string,
     @Query('medium') medium?: Medium,
   ) {
     if (!medium) medium = Medium.Web;
 
-    return await this.donationService.donate(dto, campaignId, medium);
+    return await this.donationService.donateChapa(dto, campaignId, medium);
   }
   @Get('me')
   async getDonationsByUser(@GetCurrentUser('userId') userId: string) {

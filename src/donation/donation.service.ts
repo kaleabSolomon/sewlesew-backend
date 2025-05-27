@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ChapaService } from 'chapa-nestjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateDonationDto } from './dto';
+import { CreateDonationDto, CreateStripeDonationDto } from './dto';
 import { CampaignStatus, PaymentStatus } from '@prisma/client';
 import { createApiResponse } from 'src/utils';
 import { ConfigService } from '@nestjs/config';
@@ -20,7 +20,7 @@ export class DonationService {
     private chapa: ChapaService,
     private config: ConfigService,
   ) {}
-  async donate(
+  async donateChapa(
     dto: CreateDonationDto,
     campaignId: string,
     medium: Medium,
@@ -110,38 +110,10 @@ export class DonationService {
 
       if (!donation || donation.paymentStatus !== 'PENDING') return 'no change';
 
-      const verifiedDonation = await this.prisma.donation.update({
-        where: { txRef: response.data.tx_ref },
-        data: { paymentStatus: PaymentStatus.VERIFIED },
-      });
-
-      const campaign = await this.prisma.campaign.update({
-        where: { id: verifiedDonation.campaignId },
-        data: {
-          raisedAmount: {
-            increment: verifiedDonation.amount,
-          },
-        },
-      });
-
-      // Step 3: Check if goal is met and close campaign
-      if (campaign.raisedAmount >= campaign.goalAmount) {
-        console.log('closing bcz goal is met');
-        await this.prisma.campaign.update({
-          where: { id: campaign.id },
-          data: { status: 'CLOSED' },
-        });
-
-        await this.prisma.closedCampaign.create({
-          data: {
-            campaignId: campaign.id,
-            isCompleted: true,
-            reason: 'Target Goal met',
-          },
-        });
-
-        console.log(`Campaign ${campaign.id} closed as it reached its goal.`);
-      }
+      const campaign = await this.finalizeDonation(
+        donation.txRef,
+        PaymentStatus.VERIFIED,
+      );
 
       return campaign;
     }
@@ -181,5 +153,118 @@ export class DonationService {
     } catch (err) {
       console.log(err);
     }
+  }
+
+  async createDonation(dto: CreateStripeDonationDto, txRef: string) {
+    const { campaignId, userId, ...donationData } = dto;
+
+    // Verify campaign exists
+    const campaign = await this.prisma.campaign.findUnique({
+      where: { id: campaignId },
+    });
+
+    if (!campaign) {
+      throw new NotFoundException('Campaign not found');
+    }
+
+    // Verify user exists if userId provided
+    if (userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+    }
+
+    try {
+      const donation = await this.prisma.donation.create({
+        data: {
+          ...donationData,
+          txRef,
+          campaignId,
+          userId,
+          paymentStatus: PaymentStatus.PENDING,
+        },
+      });
+
+      return createApiResponse({
+        status: 'success',
+        message: 'Donation initiated successfully',
+        data: donation,
+      });
+    } catch (error) {
+      console.error('Error creating donation:', error);
+      throw new InternalServerErrorException('Failed to create donation');
+    }
+  }
+
+  async updateDonationStatus(txRef: string, status: PaymentStatus) {
+    try {
+      const donation = await this.prisma.donation.update({
+        where: { txRef },
+        data: { paymentStatus: status },
+      });
+
+      return donation;
+    } catch (error) {
+      console.error('Error updating donation status:', error);
+      throw new InternalServerErrorException(
+        'Failed to update donation status',
+      );
+    }
+  }
+
+  async finalizeDonation(txRef: string, status: PaymentStatus) {
+    try {
+      const donation = await this.prisma.donation.update({
+        where: { txRef },
+        data: { paymentStatus: status },
+      });
+
+      const campaign = await this.prisma.campaign.update({
+        where: { id: donation.campaignId },
+        data: {
+          raisedAmount: {
+            increment: donation.amount,
+          },
+        },
+      });
+      if (campaign.raisedAmount >= campaign.goalAmount) {
+        console.log('closing bcz goal is met');
+        await this.prisma.campaign.update({
+          where: { id: campaign.id },
+          data: { status: 'CLOSED' },
+        });
+
+        await this.prisma.closedCampaign.create({
+          data: {
+            campaignId: campaign.id,
+            isCompleted: true,
+            reason: 'Target Goal met',
+          },
+        });
+
+        console.log(`Campaign ${campaign.id} closed as it reached its goal.`);
+      }
+
+      return campaign;
+    } catch (error) {
+      console.error('Error updating donation status:', error);
+      throw new InternalServerErrorException(
+        'Failed to update donation status',
+      );
+    }
+  }
+
+  async getDonationByTxRef(txRef: string) {
+    return this.prisma.donation.findUnique({
+      where: { txRef },
+      include: {
+        campaign: true,
+        user: true,
+      },
+    });
   }
 }

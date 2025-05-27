@@ -348,8 +348,10 @@ model Donation {
   donorFirstName String?
   donorLastName  String?
   email          String?
-  isAnonymous    Boolean       @default(false)
-  createdAt      DateTime      @default(now())
+
+  cardLast4   String?
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 enum CampaignStatus {
@@ -436,4 +438,5 @@ enum BankName {
 enum PaymentStatus {
   PENDING
   VERIFIED
+  FAILED
 }

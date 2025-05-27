@@ -22,6 +22,7 @@ import { AgentModule } from './agent/agent.module';
 import { LikeModule } from './like/like.module';
 import { CommentModule } from './comment/comment.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TestimonialModule } from './testimonial/testimonial.module';
     UserModule,
     AdminModule,
     SmsModule,
+    StripeModule.forRootAsync(),
     // ModerationModule,
     CloudinaryModule,
     CampaignModule,

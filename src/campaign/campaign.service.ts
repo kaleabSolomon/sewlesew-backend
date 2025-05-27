@@ -827,7 +827,7 @@ export class CampaignService {
       const totalItems = await this.prisma.campaign.count({
         where: {
           category: filters.category,
-          status: { not: CampaignStatus.PENDING },
+          status: CampaignStatus.ACTIVE,
           OR: [
             {
               business: {
