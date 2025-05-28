@@ -550,6 +550,7 @@ export class CampaignController {
   async getCampaigns(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('currency') currency: 'ETB' | 'USD',
     @Query('category') category?: string,
     @Query('for') fullName?: string,
     @GetCurrentUser('userId') userId?: string,
@@ -572,6 +573,7 @@ export class CampaignController {
       page,
       limit,
       filters,
+      currency,
       userId,
     );
   }

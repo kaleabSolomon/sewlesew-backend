@@ -22,13 +22,34 @@ export class StripeService {
     private prisma: PrismaService,
   ) {}
 
-  async createCheckoutSession(dto: CreateStripeDonationDto) {
+  async createCheckoutSession(dto: CreateStripeDonationDto, userId?: string) {
     try {
       // Generate unique transaction reference
       const txRef = uuidv4();
 
       // Create donation record in database
-      await this.donationService.createDonation(dto, txRef);
+      await this.donationService.createDonation(dto, txRef, userId);
+
+      const clientMedium = dto.medium?.toLowerCase();
+      const isMobileClient = clientMedium === 'mobile';
+
+      const frontendBaseUrl = this.configService.get<string>('FRONTEND_URL');
+      const mobileAppScheme = this.configService.get<string>(
+        'MOBILE_APP_SCHEME',
+        'sewlesewfund', // Default to what your mobile dev provided
+      );
+
+      let successUrl: string;
+      let cancelUrl: string;
+
+      if (isMobileClient) {
+        successUrl = `${mobileAppScheme}://stripe-payment-success?status=success&tx_ref=${txRef}`;
+        cancelUrl = `${mobileAppScheme}://stripe-payment-cancel?status=cancelled&tx_ref=${txRef}`;
+      } else {
+        // Web client URLs
+        successUrl = `${frontendBaseUrl}?status=success&tx_ref=${txRef}`; // Added tx_ref for consistency
+        cancelUrl = `${frontendBaseUrl}?status=cancelled&tx_ref=${txRef}`; // Added tx_ref
+      }
 
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -49,19 +70,29 @@ export class StripeService {
         metadata: {
           txRef,
           campaignId: dto.campaignId,
-          userId: dto.userId || '',
+          userId: userId || '',
           donorFirstName: dto.donorFirstName || '',
           donorLastName: dto.donorLastName || '',
           email: dto.email || '',
           isAnonymous: dto.isAnonymous?.toString() || 'false',
         },
         customer_email: dto.email,
-        success_url: `${this.configService.get('FRONTEND_URL')}?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${this.configService.get('FRONTEND_URL')}/donation/cancel`,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        expand: ['payment_intent'],
       });
+
+      let clientSecret = null;
+      if (
+        session.payment_intent &&
+        typeof session.payment_intent !== 'string'
+      ) {
+        clientSecret = session.payment_intent.client_secret;
+      }
 
       return {
         id: session.id,
+        clientSecret,
         url: session.url,
         txRef,
       };
@@ -90,7 +121,6 @@ export class StripeService {
       throw new Error('Webhook signature verification failed.');
     }
 
-    console.log('checked header, constructed event:', event);
     try {
       switch (event.type) {
         case 'checkout.session.completed':

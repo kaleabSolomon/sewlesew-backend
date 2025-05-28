@@ -159,13 +159,19 @@ export class DonationService {
     }
   }
 
-  async createDonation(dto: CreateStripeDonationDto, txRef: string) {
-    const { campaignId, userId, ...donationData } = dto;
+  async createDonation(
+    dto: CreateStripeDonationDto,
+    txRef: string,
+    userId?: string,
+  ) {
+    const { campaignId, ...donationData } = dto;
 
     // Verify campaign exists
     const campaign = await this.prisma.campaign.findUnique({
       where: { id: campaignId },
     });
+
+    console.log('FOR Campaign: ', campaign.title);
 
     if (!campaign) {
       throw new NotFoundException('Campaign not found');
@@ -249,6 +255,8 @@ export class DonationService {
       } else {
         throw new InternalServerErrorException('Invalid currency type');
       }
+
+      console.log(raisedAmount);
 
       const campaign = await this.prisma.campaign.update({
         where: { id: donation.campaignId },

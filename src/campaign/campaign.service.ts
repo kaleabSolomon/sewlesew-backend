@@ -23,6 +23,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { SmsService } from 'src/sms/sms.service';
 import { CloseCampaignDto } from './dto/closeCampaign.dto';
 import { AddCampaignUpdateDto } from './dto/addCampaignUpdate.dto';
+import { CurrencyService } from 'src/currency/currency.service';
 
 @Injectable()
 export class CampaignService {
@@ -30,6 +31,7 @@ export class CampaignService {
     private prisma: PrismaService,
     private authService: AuthService,
     private smsService: SmsService,
+    private currencyService: CurrencyService,
   ) {}
   returnableFieldsUser = {
     id: true,
@@ -743,6 +745,7 @@ export class CampaignService {
       fullName?: string;
       status?: CampaignStatus;
     },
+    currency: 'ETB' | 'USD',
     userId?: string,
   ) {
     try {
@@ -784,6 +787,7 @@ export class CampaignService {
           charityId: true,
           goalAmount: true,
           raisedAmount: true,
+          raisedAmountUSD: true,
           category: true,
           deadline: true,
           status: true,
@@ -827,11 +831,22 @@ export class CampaignService {
       if (!campaigns)
         throw new InternalServerErrorException('Unable to get Campaigns. ');
 
+      const rates = await this.currencyService.getCurrentRates();
+
       const campaignsWithLikeStatus = campaigns.map((campaign) => ({
         ...campaign,
         isLikedByUser: campaign.like.length > 0,
+        raisedAmount:
+          currency === 'ETB'
+            ? Number(campaign.raisedAmount) +
+              Number(campaign.raisedAmountUSD) * rates.etbValue
+            : Number(campaign.raisedAmountUSD) +
+              Number(campaign.raisedAmount) / rates.etbValue,
+        raisedAmountUSD: undefined,
+
         like: undefined, // Remove the like array from response
       }));
+
       // TODO: may need fixing here
       const totalItems = await this.prisma.campaign.count({
         where: {

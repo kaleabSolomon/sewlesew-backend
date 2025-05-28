@@ -46,10 +46,6 @@ export class CreateStripeDonationDto {
   @IsNotEmpty()
   campaignId: string;
 
-  @IsUUID()
-  @IsOptional()
-  userId?: string;
-
   @IsString()
   @IsNotEmpty()
   donorFirstName: string;
@@ -68,4 +64,8 @@ export class CreateStripeDonationDto {
   @IsString()
   @IsNotEmpty()
   currency: string;
+
+  @IsString()
+  @IsOptional()
+  medium?: 'mobile' | 'web';
 }

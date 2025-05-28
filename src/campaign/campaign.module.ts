@@ -6,9 +6,10 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { AuthService } from 'src/auth/auth.service';
 import { SmsService } from 'src/sms/sms.service';
 import { EmailService } from 'src/email/email.service';
+import { CurrencyModule } from 'src/currency/currency.module';
 
 @Module({
-  imports: [CloudinaryModule],
+  imports: [CloudinaryModule, CurrencyModule],
   controllers: [CampaignController],
   providers: [
     CampaignService,

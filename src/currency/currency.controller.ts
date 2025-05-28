@@ -9,7 +9,6 @@ export class CurrencyController {
   @Post('latest')
   @NoAuth()
   async getCurr() {
-    return await this.currencyService.manualUpdate();
+    return await this.currencyService.getCurrentRates();
   }
 }
-// Constructor logic if needed
