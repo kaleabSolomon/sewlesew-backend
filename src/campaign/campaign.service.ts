@@ -140,6 +140,7 @@ export class CampaignService {
             title: dto.title,
             description: dto.description,
             goalAmount: dto.goalAmount,
+            goalCurrency: dto.currency,
             deadline: dto.deadline,
             category: dto.category as Category,
           },
@@ -246,6 +247,7 @@ export class CampaignService {
             description: dto.description,
             goalAmount: dto.goalAmount,
             deadline: dto.deadline,
+            goalCurrency: dto.currency,
             category: dto.category as Category,
           },
         });
@@ -352,6 +354,8 @@ export class CampaignService {
             title: dto.title,
             description: dto.description,
             goalAmount: dto.goalAmount,
+            goalCurrency: dto.currency,
+
             deadline: dto.deadline,
             category: dto.category as Category,
           },
@@ -461,6 +465,7 @@ export class CampaignService {
             title: dto.title,
             description: dto.description,
             goalAmount: dto.goalAmount,
+            goalCurrency: dto.currency,
             deadline: dto.deadline,
             category: dto.category as Category,
           },
@@ -567,6 +572,8 @@ export class CampaignService {
             title: dto.title,
             description: dto.description,
             goalAmount: dto.goalAmount,
+            goalCurrency: dto.currency,
+
             deadline: dto.deadline,
             category: dto.category as Category,
           },
@@ -643,6 +650,7 @@ export class CampaignService {
             contactPhone: dto.contactPhoneNumber,
             country: dto.country,
             region: dto.region,
+
             city: dto.city,
             relativeLocation: dto.relativeLocation,
           },
@@ -671,6 +679,7 @@ export class CampaignService {
             description: dto.description,
             goalAmount: dto.goalAmount,
             deadline: dto.deadline,
+            goalCurrency: dto.currency,
             category: dto.category as Category,
           },
         });

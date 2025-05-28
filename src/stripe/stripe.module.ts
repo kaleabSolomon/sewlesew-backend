@@ -5,13 +5,14 @@ import { StripeController } from './stripe.controller';
 import { StripeService } from './stripe.service';
 import { DonationService } from '../donation/donation.service';
 import { STRIPE_CLIENT } from './constants';
+import { CurrencyModule } from 'src/currency/currency.module';
 
 @Module({})
 export class StripeModule {
   static forRootAsync(): DynamicModule {
     return {
       module: StripeModule,
-      imports: [ConfigModule],
+      imports: [ConfigModule, CurrencyModule],
       providers: [
         {
           provide: STRIPE_CLIENT,

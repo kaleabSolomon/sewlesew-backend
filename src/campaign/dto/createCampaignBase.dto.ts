@@ -69,6 +69,10 @@ export class CreateCampaignBaseDto {
   @Min(1.01, { message: 'Goal amount must be more than 1' })
   goalAmount: number;
 
+  @IsString()
+  @IsNotEmpty()
+  currency: string;
+
   @IsDateString()
   @IsNotEmpty()
   deadline: string;

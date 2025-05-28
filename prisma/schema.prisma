@@ -67,19 +67,32 @@ model BankDetail {
   @@map("bank_details")
 }
 
+model Currency {
+  id        Int      @id @default(autoincrement())
+  etbValue  Float    @map("etb_value")
+  usdValue  Float    @default(1.0) @map("usd_value")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("currencies")
+}
+
 model Campaign {
-  id           String         @id @default(uuid())
-  userId       String?
-  agentId      String?
-  title        String         @db.VarChar(50)
-  description  String
-  goalAmount   Decimal        @db.Decimal(11, 2)
-  category     Category
-  raisedAmount Decimal        @default(0.00) @db.Decimal(11, 2)
-  status       CampaignStatus @default(PENDING)
-  deadline     DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id              String   @id @default(uuid())
+  userId          String?
+  agentId         String?
+  title           String   @db.VarChar(50)
+  description     String
+  goalAmount      Decimal  @db.Decimal(11, 2)
+  goalCurrency    String
+  category        Category
+  raisedAmount    Decimal  @default(0.00) @db.Decimal(11, 2)
+  raisedAmountUSD Decimal  @default(0.00) @db.Decimal(11, 2)
+
+  status    CampaignStatus @default(PENDING)
+  deadline  DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
   closeCampaignVerificationCode          Int?
   closeCampaignVerificationCodeExpiresAt DateTime?
@@ -348,6 +361,7 @@ model Donation {
   donorFirstName String?
   donorLastName  String?
   email          String?
+  currency       String
 
   cardLast4   String?
   isAnonymous Boolean  @default(false)

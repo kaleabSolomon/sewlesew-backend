@@ -30,6 +30,10 @@ export class CreateDonationDto {
   @IsBoolean()
   @IsNotEmpty()
   isAnonymous: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  currency: string;
 }
 
 export class CreateStripeDonationDto {
@@ -61,4 +65,7 @@ export class CreateStripeDonationDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+  @IsString()
+  @IsNotEmpty()
+  currency: string;
 }

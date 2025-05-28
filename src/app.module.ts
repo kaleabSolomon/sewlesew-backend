@@ -23,6 +23,7 @@ import { LikeModule } from './like/like.module';
 import { CommentModule } from './comment/comment.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
 import { StripeModule } from './stripe/stripe.module';
+import { CurrencyModule } from './currency/currency.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { StripeModule } from './stripe/stripe.module';
     LikeModule,
     CommentModule,
     TestimonialModule,
+    CurrencyModule,
   ],
   controllers: [],
   providers: [

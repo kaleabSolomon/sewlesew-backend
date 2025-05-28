@@ -56,7 +56,7 @@ export class StripeService {
           isAnonymous: dto.isAnonymous?.toString() || 'false',
         },
         customer_email: dto.email,
-        success_url: `${this.configService.get('FRONTEND_URL')}/donation/success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${this.configService.get('FRONTEND_URL')}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${this.configService.get('FRONTEND_URL')}/donation/cancel`,
       });
 
@@ -131,6 +131,7 @@ export class StripeService {
       const campaign = await this.donationService.finalizeDonation(
         txRef,
         PaymentStatus.VERIFIED,
+        'USD',
       );
 
       console.log(`✅ Donation completed for txRef: ${txRef}`);

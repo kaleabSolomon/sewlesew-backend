@@ -17,8 +17,6 @@ export class StripeController {
   @NoAuth()
   @Post('webhook')
   async handleWebhook(@Req() req: Request) {
-    console.log('Received Stripe webhook: ', req.headers, '\n', req.body);
-
     return this.stripeService.handleWebhook(req);
   }
 }

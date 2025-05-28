@@ -12,6 +12,7 @@ import { CampaignStatus, PaymentStatus } from '@prisma/client';
 import { createApiResponse } from 'src/utils';
 import { ConfigService } from '@nestjs/config';
 import { Medium } from 'src/common/enums';
+import { CurrencyService } from 'src/currency/currency.service';
 
 @Injectable()
 export class DonationService {
@@ -19,6 +20,7 @@ export class DonationService {
     private readonly prisma: PrismaService,
     private chapa: ChapaService,
     private config: ConfigService,
+    private currencyService: CurrencyService,
   ) {}
   async donateChapa(
     dto: CreateDonationDto,
@@ -45,6 +47,7 @@ export class DonationService {
           donorLastName: dto.donorLastName,
           email: dto.email,
           isAnonymous: dto.isAnonymous,
+          currency: 'ETB',
         },
       });
       if (!donation)
@@ -113,6 +116,7 @@ export class DonationService {
       const campaign = await this.finalizeDonation(
         donation.txRef,
         PaymentStatus.VERIFIED,
+        'ETB',
       );
 
       return campaign;
@@ -185,6 +189,7 @@ export class DonationService {
           txRef,
           campaignId,
           userId,
+          currency: 'USD',
           paymentStatus: PaymentStatus.PENDING,
         },
       });
@@ -216,23 +221,102 @@ export class DonationService {
     }
   }
 
-  async finalizeDonation(txRef: string, status: PaymentStatus) {
+  async finalizeDonation(
+    txRef: string,
+    status: PaymentStatus,
+    currency: 'ETB' | 'USD',
+  ) {
     try {
       const donation = await this.prisma.donation.update({
         where: { txRef },
         data: { paymentStatus: status },
       });
 
-      const campaign = await this.prisma.campaign.update({
-        where: { id: donation.campaignId },
-        data: {
+      let raisedAmount = {};
+
+      if (currency === 'ETB') {
+        raisedAmount = {
           raisedAmount: {
             increment: donation.amount,
           },
-        },
+        };
+      } else if (currency === 'USD') {
+        raisedAmount = {
+          raisedAmountUSD: {
+            increment: donation.amount,
+          },
+        };
+      } else {
+        throw new InternalServerErrorException('Invalid currency type');
+      }
+
+      const campaign = await this.prisma.campaign.update({
+        where: { id: donation.campaignId },
+        data: raisedAmount,
       });
 
-      if (Number(campaign.raisedAmount) >= Number(campaign.goalAmount)) {
+      const campaignCurrency = campaign.goalCurrency;
+      let condition: boolean;
+
+      if (campaignCurrency === currency) {
+        if (currency === 'USD') {
+          const etbRaisedToUsd = await this.currencyService.convertEtbToUsd(
+            Number(campaign.raisedAmount),
+          );
+
+          const totalRaisedInUsd =
+            etbRaisedToUsd + Number(campaign.raisedAmountUSD);
+
+          console.log(
+            `Total raised in USD: ${totalRaisedInUsd}, Goal in USD: ${campaign.goalAmount}`,
+          );
+
+          condition = totalRaisedInUsd >= Number(campaign.goalAmount);
+        } else {
+          const usdRaisedToEtb = await this.currencyService.convertUsdToEtb(
+            Number(campaign.raisedAmountUSD),
+          );
+
+          const totalRaisedInEtb =
+            usdRaisedToEtb + Number(campaign.raisedAmount);
+
+          console.log(
+            `Total raised in USD: ${totalRaisedInEtb}, Goal in USD: ${campaign.goalAmount}`,
+          );
+
+          condition = totalRaisedInEtb >= Number(campaign.goalAmount);
+        }
+      } else {
+        if (currency === 'ETB') {
+          const usdRaisedToEtb = await this.currencyService.convertUsdToEtb(
+            Number(campaign.raisedAmountUSD),
+          );
+
+          const totalRaisedInEtb =
+            usdRaisedToEtb + Number(campaign.raisedAmount);
+
+          console.log(
+            `Total raised in ETB: ${totalRaisedInEtb}, Goal in ETB: ${campaign.goalAmount}`,
+          );
+
+          condition = totalRaisedInEtb >= Number(campaign.goalAmount);
+        } else {
+          const etbRaisedToUsd = await this.currencyService.convertEtbToUsd(
+            Number(campaign.raisedAmount),
+          );
+
+          const totalRaisedInUsd =
+            etbRaisedToUsd + Number(campaign.raisedAmountUSD);
+
+          console.log(
+            `Total raised in USD: ${totalRaisedInUsd}, Goal in USD: ${campaign.goalAmount}`,
+          );
+
+          condition = totalRaisedInUsd >= Number(campaign.goalAmount);
+        }
+      }
+
+      if (condition) {
         console.log('closing bcz goal is met');
         await this.prisma.campaign.update({
           where: { id: campaign.id },
